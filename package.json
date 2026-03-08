@@ -1,0 +1,95 @@
+{
+  "name": "opencode-chat",
+  "displayName": "opencode Chat",
+  "description": "AI-powered chat interface for opencode in VS Code",
+  "version": "0.1.0",
+  "publisher": "sst-dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anomalyco/opencode"
+  },
+  "license": "MIT",
+  "icon": "images/icon.svg",
+  "galleryBanner": {
+    "color": "#000000",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:opencode.chat"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "opencode",
+          "title": "opencode",
+          "icon": "./images/button-dark.svg"
+        }
+      ]
+    },
+    "views": {
+      "opencode": [
+        {
+          "id": "opencode.chat",
+          "type": "webview",
+          "name": "Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "opencode.newSession",
+        "title": "opencode: New Session"
+      },
+      {
+        "command": "opencode.focus",
+        "title": "opencode: Focus Chat"
+      },
+      {
+        "command": "opencode.attachSelection",
+        "title": "opencode: Attach Selection"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "opencode.focus",
+        "key": "cmd+shift+o",
+        "mac": "cmd+shift+o",
+        "win": "ctrl+shift+o",
+        "linux": "ctrl+shift+o"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "build:extension": "node esbuild.js --target=extension",
+    "build:webview": "node esbuild.js --target=webview",
+    "watch": "node esbuild.js --watch",
+    "watch:extension": "node esbuild.js --watch --target=extension",
+    "watch:webview": "node esbuild.js --watch --target=webview",
+    "package": "node esbuild.js --production"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3",
+    "@types/node": "22.13.9",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/vscode": "^1.94.0",
+    "esbuild": "^0.25.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "react": "^18",
+    "react-dom": "^18",
+    "marked": "^14",
+    "dompurify": "^3",
+    "@opencode-ai/sdk": "workspace:*"
+  }
+}

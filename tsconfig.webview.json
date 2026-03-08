@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "jsx": "react-jsx",
+    "sourceMap": true,
+    "rootDir": "webview",
+    "outDir": "dist/webview",
+    "typeRoots": ["./node_modules/@types"],
+    "strict": true,
+    "skipLibCheck": true
+  }
+}

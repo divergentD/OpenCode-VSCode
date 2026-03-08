@@ -1,0 +1,7 @@
+src/**
+webview/**
+node_modules/**
+*.ts
+esbuild.js
+tsconfig*.json
+bun.lock
