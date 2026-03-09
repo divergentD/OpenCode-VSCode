@@ -7,42 +7,53 @@ type Props = {
 }
 
 export function MessageBubble({ message, partDeltas }: Props) {
-  // DEBUG: Log message structure
-  console.log("[MessageBubble] Rendering message:", {
-    id: message.id,
-    role: message.role,
-    partsCount: message.parts?.length ?? 0,
-    parts: message.parts,
-    partDeltas: partDeltas,
-    rawMessage: message
-  })
-  if (message.role === "user") {
-    const textParts = (message.parts ?? []).filter((p): p is TextPartData => p.type === "text")
-    const text = textParts.map((p) => p.text).join("\n")
-    console.log("[MessageBubble] User text parts:", textParts.length, "text:", text.substring(0, 100))
-    return (
-      <div className="message-user">
-        {text || <span style={{ opacity: 0.5 }}>[empty]</span>}
+  const isUser = message.role === "user"
+
+  return (
+    <div className={`message ${isUser ? "user" : "assistant"}`}>
+      {/* Avatar */}
+      <div className="message-avatar">{isUser ? "U" : "AI"}</div>
+
+      {/* Content */}
+      <div className="message-content">
+        {isUser ? (
+          <UserMessageContent message={message} />
+        ) : (
+          <AssistantMessageContent message={message} partDeltas={partDeltas} />
+        )}
         {message.error && (
-          <div style={{ color: "var(--vscode-errorForeground)", fontSize: "11px", marginTop: "4px" }}>
-            {message.error.message}
-          </div>
+          <div className="message-error">⚠ {message.error.message}</div>
         )}
       </div>
-    )
-  }
+    </div>
+  )
+}
 
-  // Assistant message — render each part
+function UserMessageContent({ message }: { message: MessageInfo }) {
+  const textParts = (message.parts ?? []).filter((p): p is TextPartData => p.type === "text")
+  const text = textParts.map((p) => p.text).join("\n")
+
   return (
-    <div className="message-assistant">
-      {(message.parts ?? []).map((part) => (
+    <div className="message-bubble user">
+      {text || <span style={{ opacity: 0.5 }}>[empty]</span>}
+    </div>
+  )
+}
+
+function AssistantMessageContent({
+  message,
+  partDeltas,
+}: {
+  message: MessageInfo
+  partDeltas: Record<string, string>
+}) {
+  const parts = message.parts ?? []
+
+  return (
+    <div className="message-parts">
+      {parts.map((part) => (
         <Part key={part.id} part={part} delta={partDeltas[part.id]} />
       ))}
-      {message.error && (
-        <div style={{ padding: "4px 12px", color: "var(--vscode-errorForeground)", fontSize: "12px" }}>
-          ⚠ {message.error.message}
-        </div>
-      )}
     </div>
   )
 }
@@ -71,7 +82,6 @@ function Part({ part, delta }: { part: PartData; delta?: string }) {
 }
 
 // Simple markdown renderer using dangerouslySetInnerHTML with basic parsing
-// We avoid marked/DOMPurify dependency complexity — do basic replacement
 function renderMarkdown(text: string): string {
   if (!text) return ""
   let html = text
@@ -106,9 +116,8 @@ function renderMarkdown(text: string): string {
 
 function TextPart({ part, delta }: { part: TextPartData; delta?: string }) {
   const text = delta ?? part.text ?? ""
-  console.log("[TextPart] Rendering:", { partID: part.id, delta, partText: part.text, finalText: text })
-if (!text) return null
-return <div className="part-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
+  if (!text) return null
+  return <div className="part-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
 }
 
 function ToolCallPart({ part }: { part: ToolPartData }) {
@@ -120,19 +129,19 @@ function ToolCallPart({ part }: { part: ToolPartData }) {
   return (
     <div className={`tool-call ${status}`}>
       <div className="tool-call-header" onClick={() => setOpen((v) => !v)}>
-        <span>{icon}</span>
+        <span className="tool-call-icon">{icon}</span>
         <span className="tool-call-name">{part.toolName}</span>
-        {title && title !== part.toolName && <span className="tool-call-title">— {title}</span>}
-        <span style={{ marginLeft: "auto", fontSize: "10px", opacity: 0.5 }}>{open ? "▲" : "▼"}</span>
+        {label && label !== part.toolName && <span className="tool-call-title">{label}</span>}
+        <span className="tool-call-toggle">{open ? "▲" : "▼"}</span>
       </div>
       {open && (
         <div className="tool-call-body">
           {error ? (
-            <span style={{ color: "var(--vscode-errorForeground)" }}>{error}</span>
+            <span className="tool-call-error">{error}</span>
           ) : output ? (
-            output
+            <pre className="tool-call-output">{output}</pre>
           ) : input ? (
-            JSON.stringify(input, null, 2)
+            <pre className="tool-call-input">{JSON.stringify(input, null, 2)}</pre>
           ) : (
             <span style={{ opacity: 0.5 }}>No output</span>
           )}
@@ -148,8 +157,8 @@ function ReasoningPart({ part }: { part: ReasoningPartData }) {
   return (
     <div className="part-reasoning">
       <div className="part-reasoning-header" onClick={() => setOpen((v) => !v)}>
-        <span style={{ fontSize: "10px" }}>{open ? "▲" : "▼"}</span>
-        <span>Reasoning</span>
+        <span className="reasoning-toggle">{open ? "▲" : "▼"}</span>
+        <span className="reasoning-label">Reasoning</span>
       </div>
       {open && <div className="part-reasoning-body">{part.text}</div>}
     </div>
@@ -160,13 +169,18 @@ function PatchPart({ part }: { part: PatchPartData }) {
   if (!part.files?.length) return null
   return (
     <div className="part-patch">
-      {part.files.map((f, i) => (
-        <div key={i} className="patch-file">
-          <span className="patch-path">{f.path}</span>
-          {f.additions > 0 && <span className="patch-additions">+{f.additions}</span>}
-          {f.deletions > 0 && <span className="patch-deletions">-{f.deletions}</span>}
-        </div>
-      ))}
+      <div className="patch-header">File Changes</div>
+      <div className="patch-files">
+        {part.files.map((f, i) => (
+          <div key={i} className="patch-file">
+            <span className="patch-path">{f.path}</span>
+            <div className="patch-stats">
+              {f.additions > 0 && <span className="patch-additions">+{f.additions}</span>}
+              {f.deletions > 0 && <span className="patch-deletions">-{f.deletions}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

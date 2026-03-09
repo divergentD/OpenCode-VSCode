@@ -81,56 +81,6 @@ export function PromptInput({ disabled, sessionID, contextResolved, post }: Prop
     setChips((c) => [...c.slice(0, idx), ...c.slice(idx + 1)])
   }, [])
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (showMenu) {
-        if (e.key === "ArrowDown") {
-          e.preventDefault()
-          setMenuActiveIdx((i) => i + 1)
-          return
-        }
-        if (e.key === "ArrowUp") {
-          e.preventDefault()
-          setMenuActiveIdx((i) => Math.max(0, i - 1))
-          return
-        }
-        if (e.key === "Escape") {
-          e.preventDefault()
-          setShowMenu(false)
-          return
-        }
-        if (e.key === "Enter") {
-          e.preventDefault()
-          const opts = ["selection", "problems", "terminal", "file", "workspace"] as const
-          handleMentionSelect(opts[menuActiveIdx] ?? "selection")
-          return
-        }
-      }
-      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-        e.preventDefault()
-        submit()
-      }
-    },
-    [showMenu, menuActiveIdx, handleMentionSelect, sessionID, chips, post, submit],
-  )
-
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value
-    setText(val)
-
-    const atIdx = val.lastIndexOf("@")
-    if (atIdx >= 0) {
-      const query = val.slice(atIdx + 1)
-      if (!query.includes(" ")) {
-        setMenuQuery(query)
-        setMenuActiveIdx(0)
-        setShowMenu(true)
-        return
-      }
-    }
-    setShowMenu(false)
-  }, [])
-
   const buildPromptParts = useCallback((): PromptPart[] => {
     const parts: PromptPart[] = []
 
@@ -161,6 +111,56 @@ export function PromptInput({ disabled, sessionID, contextResolved, post }: Prop
     setText("")
     setChips([])
   }, [sessionID, buildPromptParts, post])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (showMenu) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault()
+          setMenuActiveIdx((i) => i + 1)
+          return
+        }
+        if (e.key === "ArrowUp") {
+          e.preventDefault()
+          setMenuActiveIdx((i) => Math.max(0, i - 1))
+          return
+        }
+        if (e.key === "Escape") {
+          e.preventDefault()
+          setShowMenu(false)
+          return
+        }
+        if (e.key === "Enter") {
+          e.preventDefault()
+          const opts = ["selection", "problems", "terminal", "file", "workspace"] as const
+          handleMentionSelect(opts[menuActiveIdx] ?? "selection")
+          return
+        }
+      }
+      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+        e.preventDefault()
+        submit()
+      }
+    },
+    [showMenu, menuActiveIdx, handleMentionSelect, submit],
+  )
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value
+    setText(val)
+
+    const atIdx = val.lastIndexOf("@")
+    if (atIdx >= 0) {
+      const query = val.slice(atIdx + 1)
+      if (!query.includes(" ")) {
+        setMenuQuery(query)
+        setMenuActiveIdx(0)
+        setShowMenu(true)
+        return
+      }
+    }
+    setShowMenu(false)
+  }, [])
 
   const canSubmit = !disabled && sessionID && (text.trim() || chips.length > 0)
 
