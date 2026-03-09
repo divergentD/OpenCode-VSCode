@@ -108,30 +108,10 @@ export function PromptInput({ disabled, sessionID, contextResolved, post }: Prop
       }
       if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
         e.preventDefault()
-        // Get current text value directly from textarea to avoid closure staleness
-        const currentText = e.currentTarget.value
-        if (!sessionID) return
-        const parts: PromptPart[] = []
-        for (const chip of chips) {
-          if (chip.kind === "selection") {
-            const { file, range, text: selText } = chip.context
-            parts.push({ type: "text", text: `Code from ${file}:\n\`\`\`\n${selText}\n\`\`\`` })
-          } else if (chip.kind === "problems") {
-            const problems = chip.items.map((p) => `${p.severity}: ${p.file}:${p.line}`).join("\n")
-            parts.push({ type: "text", text: `Workspace problems:\n${problems}` })
-          } else if (chip.kind === "terminal") {
-            parts.push({ type: "text", text: `Terminal output:\n\`\`\`\n${chip.text}\n\`\`\`` })
-          }
-        }
-        if (currentText.trim()) {
-          parts.push({ type: "text", text: currentText.trim() })
-        }
-        if (parts.length > 0) {
-          setText("")
-        }
+        submit()
       }
     },
-    [showMenu, menuActiveIdx, handleMentionSelect, sessionID, chips, post],
+    [showMenu, menuActiveIdx, handleMentionSelect, sessionID, chips, post, submit],
   )
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
