@@ -9,6 +9,7 @@ export type HostMessage =
   | { type: "event"; event: SseEvent }
   | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
   | { type: "providers.list"; providers: ProviderInfo[] }
+  | { type: "commands.list"; commands: CommandInfo[] }
   | { type: "workspace.missing" }
 
 // WebviewMessage — what webview sends to extension host
@@ -26,6 +27,7 @@ export type WebviewMessage =
   | { type: "mention.resolve"; kind: "selection" | "problems" | "terminal" }
   | { type: "files.search"; query: string }
   | { type: "symbols.search"; query: string }
+  | { type: "commands.list.request" }
 
 export type PromptPart = { type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }
 
@@ -134,6 +136,15 @@ export type QuestionRequest = {
 }
 
 export type SessionStatus = "idle" | "busy" | "error"
+
+// Command info from SDK
+export type CommandInfo = {
+  id: string
+  name: string
+  description?: string
+  source?: "command" | "mcp" | "skill"
+  [key: string]: unknown
+}
 
 // Context resolved from @mentions
 export type SelectionContext = {

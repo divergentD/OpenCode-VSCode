@@ -8,6 +8,7 @@ import type {
   SessionStatus,
   SelectionContext,
   ProblemContext,
+  CommandInfo,
 } from "./types"
 
 export type AppState = {
@@ -21,6 +22,7 @@ export type AppState = {
   permissions: PermissionRequest[]
   questions: QuestionRequest[]
   sessionStatuses: Record<string, SessionStatus>
+  commands: CommandInfo[]
   contextResolved: {
     selection?: SelectionContext
     problems?: ProblemContext[]
@@ -40,6 +42,7 @@ export const initialState: AppState = {
   permissions: [],
   questions: [],
   sessionStatuses: {},
+  commands: [],
   contextResolved: {},
 }
 
@@ -53,6 +56,7 @@ export type Action =
   | { type: "messages.list"; sessionID: string; messages: MessageInfo[] }
   | { type: "event"; event: SseEvent }
   | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
+  | { type: "commands.list"; commands: CommandInfo[] }
 
 function updatePart(msgs: MessageInfo[], part: PartData): MessageInfo[] {
   const idx = msgs.findIndex((m) => m.id === part.messageID)
@@ -71,7 +75,6 @@ function updateMessage(msgs: MessageInfo[], info: MessageInfo): MessageInfo[] {
   const existing = msgs[idx]
   return [...msgs.slice(0, idx), { ...existing, ...info }, ...msgs.slice(idx + 1)]
 }
-
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -176,6 +179,12 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         contextResolved: { ...state.contextResolved, [action.kind]: action.payload },
+      }
+
+    case "commands.list":
+      return {
+        ...state,
+        commands: action.commands,
       }
 
     default:

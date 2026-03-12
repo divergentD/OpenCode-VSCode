@@ -76,6 +76,7 @@ export function ChatPanel({ state, dispatch, post }: Props) {
           contextResolved={state.contextResolved}
           post={post}
           sessionID={state.activeSessionID}
+          commands={state.commands}
         />
       </div>
     </div>

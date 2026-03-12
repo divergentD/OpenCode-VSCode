@@ -364,6 +364,34 @@ body {
   border-radius: 12px;
   padding: 12px;
   transition: all 0.2s;
+  position: relative;
+}
+
+.input-wrapper {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.input-wrapper:focus-within {
+  border-color: #3b82f6;
+  background: #1f1f1f;
+}
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s;
+  position: relative;
+}
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s;
 }
 
 .input-wrapper:focus-within {
@@ -1172,4 +1200,109 @@ pre code {
 
 .part-text em {
   font-style: italic;
+}
+
+
+/* === MENTION MENU === */
+.mention-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 16px;
+  right: 16px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-bottom: 8px;
+}
+
+.mention-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #252525;
+}
+
+.mention-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mention-menu-item:hover,
+.mention-menu-item.active {
+  background: #252525;
+}
+
+.mention-menu-item .icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.mention-menu-item .label {
+  font-size: 13px;
+  color: #e5e5e5;
+  font-family: "SF Mono", Monaco, monospace;
+}
+
+.mention-menu-item .desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: auto;
+}
+
+/* === COMMAND MENU === */
+.command-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 16px;
+  right: 16px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-bottom: 8px;
+}
+
+.command-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #252525;
+}
+
+.command-menu-item:last-child {
+  border-bottom: none;
+}
+
+.command-menu-item:hover,
+.command-menu-item.active {
+  background: #252525;
+}
+
+.command-menu-item .command-name {
+  font-size: 13px;
+  color: #9ca3af;
+  font-family: "SF Mono", Monaco, monospace;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.command-menu-item .command-desc {
+  font-size: 12px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -50,9 +50,20 @@ export class ChatProvider implements vscode.WebviewViewProvider {
           this.startEventLoop()
           this.post({ type: "server.ready", url: this.serverHandle.url })
 
-          const result = await this.client.session.list({ directory: this.directory })
-          if (result.data) {
-            this.post({ type: "sessions.list", sessions: result.data })
+          // Load and send available commands
+          try {
+            const cmdResult = await this.client.command.list({ directory: this.directory })
+            console.log('[provider] Auto-loading commands:', cmdResult.data?.length || 0)
+            if (cmdResult.data) {
+              this.post({ type: "commands.list", commands: cmdResult.data })
+            }
+          } catch (cmdErr) {
+            console.error('[provider] Failed to load commands:', cmdErr)
+          }
+
+          const sessionResult = await this.client.session.list({ directory: this.directory })
+          if (sessionResult.data) {
+            this.post({ type: "sessions.list", sessions: sessionResult.data })
           }
         },
       )
@@ -109,7 +120,11 @@ export class ChatProvider implements vscode.WebviewViewProvider {
   }
 
   private async handleMessage(msg: WebviewMessage): Promise<void> {
-    if (!this.client || !this.directory) return
+    console.log('[provider] handleMessage called:', msg.type, 'client:', !!this.client, 'directory:', !!this.directory)
+    if (!this.client || !this.directory) {
+      console.log('[provider] Early return - client or directory not ready')
+      return
+    }
 
     switch (msg.type) {
       case "ready": {
@@ -156,17 +171,17 @@ export class ChatProvider implements vscode.WebviewViewProvider {
       case "prompt": {
         console.log("[opencode] Sending prompt:", msg.sessionID, "parts:", msg.parts.length)
         try {
-await this.client.session.prompt({
-sessionID: msg.sessionID,
-directory: this.directory,
-parts: msg.parts,
-        })
+          await this.client.session.prompt({
+            sessionID: msg.sessionID,
+            directory: this.directory,
+            parts: msg.parts,
+          })
           console.log("[opencode] Prompt sent successfully")
         } catch (err) {
           console.error("[opencode] Failed to send prompt:", err)
         }
-break
-}
+        break
+      }
       case "permission.reply": {
         await this.client.permission.reply({
           requestID: msg.requestID,
@@ -203,6 +218,13 @@ break
         if (result.data) this.post({ type: "providers.list", providers: result.data })
         break
       }
+      case "commands.list.request": {
+        console.log('[provider] Received commands.list.request')
+        const result = await this.client.command.list({ directory: this.directory })
+        console.log('[provider] command.list result:', result)
+        if (result.data) this.post({ type: "commands.list", commands: result.data })
+        break
+      }
     }
   }
 
@@ -210,12 +232,12 @@ break
     this.view?.webview.postMessage(msg)
   }
 
-private getHtml(webview: vscode.Webview): string {
-const nonce = crypto.randomBytes(16).toString("hex")
+  private getHtml(webview: vscode.Webview): string {
+    const nonce = crypto.randomBytes(16).toString("hex")
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "webview.js"))
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "webview.css"))
-const cspSource = webview.cspSource
-return `<!DOCTYPE html>
+    const cspSource = webview.cspSource
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -229,7 +251,7 @@ return `<!DOCTYPE html>
 <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`
-}
+  }
 
   async newSession(): Promise<void> {
     if (!this.client || !this.directory) return

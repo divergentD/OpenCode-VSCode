@@ -14,11 +14,11 @@ const vscode = acquireVsCodeApi()
 export function App() {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-useEffect(() => {
-function handle(event: MessageEvent) {
+  useEffect(() => {
+    function handle(event: MessageEvent) {
       const msg = event.data as HostMessage
       console.log("[opencode webview] Received message:", msg.type, msg)
-switch (msg.type) {
+      switch (msg.type) {
         case "server.ready":
           dispatch({ type: "server.ready" })
           break
@@ -46,10 +46,15 @@ switch (msg.type) {
         case "context.resolved":
           dispatch({ type: "context.resolved", kind: msg.kind, payload: msg.payload })
           break
+        case "commands.list":
+          console.log('[App] Received commands.list with', msg.commands.length, 'commands')
+          dispatch({ type: "commands.list", commands: msg.commands })
+          break
       }
     }
     window.addEventListener("message", handle)
     vscode.postMessage({ type: "ready" })
+    vscode.postMessage({ type: "commands.list.request" })
     return () => window.removeEventListener("message", handle)
   }, [])
 
