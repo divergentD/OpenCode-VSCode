@@ -153,6 +153,3 @@ npm run package
 - [VS Code: 扩展开发文档](https://code.visualstudio.com/api)
 - [问题反馈](https://github.com/anomalyco/opencode/issues)
 
----
-
-Made with ❤️ by the opencode team
