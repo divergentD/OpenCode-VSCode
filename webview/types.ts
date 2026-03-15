@@ -11,9 +11,9 @@ export type HostMessage =
   | { type: "providers.list"; providers: ProviderInfo[]; default?: Record<string, string>; connected?: string[] }
   | { type: "commands.list"; commands: CommandInfo[] }
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
+  | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "workspace.missing" }
-  | { type: "workspace.missing" }
-  | { type: "workspace.missing" }
+
 
 // WebviewMessage — what webview sends to extension host
 export type WebviewMessage =
@@ -116,11 +116,7 @@ export type ProviderInfo = {
   models?: Array<{ id: string; name?: string }>
   [key: string]: unknown
 }
-  id: string
-  name: string
-  models?: Array<{ id: string; name?: string }>
-  [key: string]: unknown
-}
+
 
 // SSE event types (mirrors SDK Event union)
 export type SseEvent = {
@@ -155,16 +151,16 @@ export type CommandInfo = {
   [key: string]: unknown
 }
 
-// Agent info from SDK
+// Agent info from SDK (matches SDK Agent type)
 export type AgentInfo = {
   name: string
   description?: string
-  [key: string]: unknown
-}
-export type AgentInfo = {
-  id: string
-  name: string
-  description?: string
+  mode: "subagent" | "primary" | "all"
+  builtIn: boolean
+  model?: {
+    modelID: string
+    providerID: string
+  }
   [key: string]: unknown
 }
 

@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as crypto from "crypto"
-import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2/client"
+import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { connect, type ServerHandle } from "./server"
 import { MentionResolver } from "./mentions"
 import type { HostMessage, WebviewMessage } from "./types"
@@ -82,6 +82,32 @@ export class ChatProvider implements vscode.WebviewViewProvider {
           if (sessionResult.data) {
             this.post({ type: "sessions.list", sessions: sessionResult.data })
           }
+
+          // Load and send available providers
+          try {
+            const providerResult = await this.client.provider.list({ directory: this.directory })
+            console.log('[provider] Auto-loading providers:', providerResult.data?.length || 0)
+            if (providerResult.data) {
+              const providers = Array.isArray(providerResult.data) ? providerResult.data : (providerResult.data as { all?: unknown[] }).all || []
+              const defaults = (providerResult.data as { default?: Record<string, string> }).default
+              const connected = (providerResult.data as { connected?: string[] }).connected || []
+              this.post({ type: "providers.list", providers, default: defaults, connected })
+            }
+          } catch (providerErr) {
+            console.error('[provider] Failed to load providers:', providerErr)
+          }
+
+          // Load and send available agents
+          try {
+            const agentResult = await this.client.app.agents({ directory: this.directory })
+            console.log('[provider] Auto-loading agents:', agentResult.data?.length || 0)
+            if (agentResult.data) {
+              this.post({ type: "agents.list", agents: agentResult.data })
+            }
+          } catch (agentErr) {
+            console.error('[provider] Failed to load agents:', agentErr)
+          }
+
         },
       )
     } catch (err) {

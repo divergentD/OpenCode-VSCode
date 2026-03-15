@@ -1,4 +1,4 @@
-import type { Session, Message, Event, PermissionRuleset, Part } from "@opencode-ai/sdk/v2"
+import type { Session, Message, Event, PermissionRuleset, Part } from "@opencode-ai/sdk"
 
 export type SelectionContext = {
   text: string
@@ -25,29 +25,10 @@ export type HostMessage =
   | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
   | { type: "providers.list"; providers: unknown[]; default?: Record<string, string>; connected?: string[] }
   | { type: "commands.list"; commands: unknown[] }
+  | { type: "agents.list"; agents: unknown[] }
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
   | { type: "workspace.missing" }
-  | { type: "server.ready"; url: string }
-  | { type: "server.error"; message: string }
-  | { type: "sessions.list"; sessions: Session[] }
-  | { type: "session.created"; session: Session }
-  | { type: "session.deleted"; sessionID: string }
-  | { type: "messages.list"; sessionID: string; messages: Message[] }
-  | { type: "event"; event: Event }
-  | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
-  | { type: "providers.list"; providers: unknown[] }
-  | { type: "commands.list"; commands: unknown[] }
-  | { type: "workspace.missing" }
-  | { type: "server.ready"; url: string }
-  | { type: "server.error"; message: string }
-  | { type: "sessions.list"; sessions: Session[] }
-  | { type: "session.created"; session: Session }
-  | { type: "session.deleted"; sessionID: string }
-  | { type: "messages.list"; sessionID: string; messages: Message[] }
-  | { type: "event"; event: Event }
-  | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
-  | { type: "providers.list"; providers: unknown[] }
-  | { type: "workspace.missing" }
+
 
 export type WebviewMessage =
   | { type: "ready" }
@@ -70,4 +51,3 @@ export type WebviewMessage =
   | { type: "providers.list.request" }
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
-  | { type: "commands.list.request" }
