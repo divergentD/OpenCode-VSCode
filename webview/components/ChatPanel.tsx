@@ -77,6 +77,12 @@ export function ChatPanel({ state, dispatch, post }: Props) {
           post={post}
           sessionID={state.activeSessionID}
           commands={state.commands}
+          agents={state.agents}
+          providers={state.providers}
+          selectedAgent={state.selectedAgent}
+          selectedModel={state.selectedModel}
+          onAgentSelect={(agentID) => dispatch({ type: "agent.select", agentID })}
+          onModelSelect={(modelID) => dispatch({ type: "model.select", modelID })}
         />
       </div>
     </div>

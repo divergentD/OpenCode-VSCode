@@ -8,9 +8,12 @@ export type HostMessage =
   | { type: "messages.list"; sessionID: string; messages: MessageInfo[] }
   | { type: "event"; event: SseEvent }
   | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
-  | { type: "providers.list"; providers: ProviderInfo[] }
+  | { type: "providers.list"; providers: ProviderInfo[]; default?: Record<string, string>; connected?: string[] }
   | { type: "commands.list"; commands: CommandInfo[] }
+  | { type: "config.get"; config: { model?: string; default_agent?: string } }
+  | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "workspace.missing" }
+
 
 // WebviewMessage — what webview sends to extension host
 export type WebviewMessage =
@@ -28,6 +31,7 @@ export type WebviewMessage =
   | { type: "files.search"; query: string }
   | { type: "symbols.search"; query: string }
   | { type: "commands.list.request" }
+  | { type: "agents.list.request" }
 
 export type PromptPart = { type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }
 
@@ -113,6 +117,7 @@ export type ProviderInfo = {
   [key: string]: unknown
 }
 
+
 // SSE event types (mirrors SDK Event union)
 export type SseEvent = {
   type: string
@@ -143,6 +148,19 @@ export type CommandInfo = {
   name: string
   description?: string
   source?: "command" | "mcp" | "skill"
+  [key: string]: unknown
+}
+
+// Agent info from SDK (matches SDK Agent type)
+export type AgentInfo = {
+  name: string
+  description?: string
+  mode: "subagent" | "primary" | "all"
+  builtIn: boolean
+  model?: {
+    modelID: string
+    providerID: string
+  }
   [key: string]: unknown
 }
 

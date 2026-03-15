@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react"
-import type { WebviewMessage, PromptPart, SelectionContext, ProblemContext, CommandInfo } from "../types"
+import type { WebviewMessage, PromptPart, SelectionContext, ProblemContext, CommandInfo, AgentInfo, ProviderInfo } from "../types"
 import { MentionMenu } from "./MentionMenu"
 import { CommandMenu } from "./CommandMenu"
+import { AgentModelSelector } from "./AgentModelSelector"
 
 type Chip =
   | { kind: "selection"; context: SelectionContext }
@@ -20,9 +21,15 @@ type Props = {
   }
   post: (msg: WebviewMessage) => void
   commands: CommandInfo[]
+  agents: AgentInfo[]
+  providers: ProviderInfo[]
+  selectedAgent: string | null
+  selectedModel: string | null
+  onAgentSelect: (agentID: string | null) => void
+  onModelSelect: (modelID: string | null) => void
 }
 
-export function PromptInput({ disabled, sessionID, contextResolved, post, commands }: Props) {
+export function PromptInput({ disabled, sessionID, contextResolved, post, commands, agents, providers, selectedAgent, selectedModel, onAgentSelect, onModelSelect }: Props) {
   const [text, setText] = useState("")
   const [chips, setChips] = useState<Chip[]>([])
   const [showMenu, setShowMenu] = useState(false)
@@ -273,6 +280,15 @@ export function PromptInput({ disabled, sessionID, contextResolved, post, comman
           >
             ⌘
           </button>
+          <AgentModelSelector
+            agents={agents}
+            providers={providers}
+            selectedAgent={selectedAgent}
+            selectedModel={selectedModel}
+            onAgentChange={onAgentSelect}
+            onModelChange={onModelSelect}
+            disabled={disabled} 
+          />
         </div>
 
         <div className="input-right">

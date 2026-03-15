@@ -1,7 +1,7 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import * as crypto from "crypto"
-import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2/client"
+import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { connect, type ServerHandle } from "./server"
 import { MentionResolver } from "./mentions"
 import type { HostMessage, WebviewMessage } from "./types"
@@ -61,10 +61,53 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             console.error('[provider] Failed to load commands:', cmdErr)
           }
 
+          // Load user config for default model and agent
+          try {
+            const configResult = await this.client.config.get({ directory: this.directory })
+            console.log('[provider] User config:', configResult.data)
+            if (configResult.data) {
+              this.post({ 
+                type: "config.get", 
+                config: {
+                  model: configResult.data.model,
+                  default_agent: configResult.data.default_agent
+                }
+              })
+            }
+          } catch (configErr) {
+            console.error('[provider] Failed to load config:', configErr)
+          }
+
           const sessionResult = await this.client.session.list({ directory: this.directory })
           if (sessionResult.data) {
             this.post({ type: "sessions.list", sessions: sessionResult.data })
           }
+
+          // Load and send available providers
+          try {
+            const providerResult = await this.client.provider.list({ directory: this.directory })
+            console.log('[provider] Auto-loading providers:', providerResult.data?.length || 0)
+            if (providerResult.data) {
+              const providers = Array.isArray(providerResult.data) ? providerResult.data : (providerResult.data as { all?: unknown[] }).all || []
+              const defaults = (providerResult.data as { default?: Record<string, string> }).default
+              const connected = (providerResult.data as { connected?: string[] }).connected || []
+              this.post({ type: "providers.list", providers, default: defaults, connected })
+            }
+          } catch (providerErr) {
+            console.error('[provider] Failed to load providers:', providerErr)
+          }
+
+          // Load and send available agents
+          try {
+            const agentResult = await this.client.app.agents({ directory: this.directory })
+            console.log('[provider] Auto-loading agents:', agentResult.data?.length || 0)
+            if (agentResult.data) {
+              this.post({ type: "agents.list", agents: agentResult.data })
+            }
+          } catch (agentErr) {
+            console.error('[provider] Failed to load agents:', agentErr)
+          }
+
         },
       )
     } catch (err) {
@@ -215,7 +258,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
       }
       case "providers.list.request": {
         const result = await this.client.provider.list({ directory: this.directory })
-        if (result.data) this.post({ type: "providers.list", providers: result.data })
+        if (result.data) {
+          // Handle case where API returns { all: [...], default: {...}, connected: [...] } instead of [...]
+          const providers = Array.isArray(result.data) ? result.data : (result.data as { all?: unknown[] }).all || []
+          const defaults = (result.data as { default?: Record<string, string> }).default
+          const connected = (result.data as { connected?: string[] }).connected || []
+          this.post({ type: "providers.list", providers, default: defaults, connected })
+        }
         break
       }
       case "commands.list.request": {
@@ -223,6 +272,18 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         const result = await this.client.command.list({ directory: this.directory })
         console.log('[provider] command.list result:', result)
         if (result.data) this.post({ type: "commands.list", commands: result.data })
+        break
+      }
+      case "agents.list.request": {
+        console.log('[provider] Received agents.list.request')
+        try {
+          const result = await this.client.app.agents({ directory: this.directory })
+          console.log('[provider] agents result:', result)
+          console.log('[provider] agent.list result:', result)
+          if (result?.data) this.post({ type: "agents.list", agents: result.data })
+        } catch (err) {
+          console.error('[provider] Failed to load agents:', err)
+        }
         break
       }
     }
@@ -242,7 +303,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} data:; connect-src ${cspSource} https://models.dev;">
   <link rel="stylesheet" href="${styleUri}">
 <title>opencode Chat</title>
 </head>
