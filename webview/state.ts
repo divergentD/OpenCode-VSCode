@@ -69,6 +69,7 @@ export type Action =
   | { type: "commands.list"; commands: CommandInfo[] }
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
   | { type: "providers.list"; providers: ProviderInfo[]; default?: Record<string, string>; connected?: string[] }
+  | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "agent.select"; agentID: string | null }
   | { type: "model.select"; modelID: string | null }
 
