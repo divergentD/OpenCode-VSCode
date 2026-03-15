@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react"
-import type { MessageInfo, PermissionRequest, QuestionRequest, SessionStatus } from "../types"
+import type { MessageInfo, PermissionRequest, QuestionRequest, SessionStatus, FileDiff } from "../types"
 import type { WebviewMessage } from "../types"
 import { MessageBubble } from "./MessageBubble"
 import { PermissionDialog } from "./PermissionDialog"
@@ -12,10 +12,11 @@ type Props = {
   questions: QuestionRequest[]
   sessionStatus: SessionStatus
   hasSession: boolean
+  fileChanges: FileDiff[]
   post: (msg: WebviewMessage) => void
 }
 
-export function MessageList({ messages, partDeltas, permissions, questions, sessionStatus, hasSession, post }: Props) {
+export function MessageList({ messages, partDeltas, permissions, questions, sessionStatus, hasSession, fileChanges, post }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -93,7 +94,7 @@ export function MessageList({ messages, partDeltas, permissions, questions, sess
   return (
     <div className="message-list">
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} post={post} />
+        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} fileChanges={fileChanges} post={post} />
       ))}
 
       {permissions.map((req) => (

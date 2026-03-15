@@ -1,27 +1,29 @@
-import React, { useState } from "react"
-import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData } from "../types"
+import React, { useState, useEffect, useMemo } from "react"
+import { FileDiff } from "@pierre/diffs/react"
+import { parseDiffFromFile } from "@pierre/diffs"
+import type { FileDiffMetadata } from "@pierre/diffs"
+import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, FileDiff as FileDiffType } from "../types"
 import type { WebviewMessage } from "../types"
 
 type Props = {
   message: MessageInfo
   partDeltas: Record<string, string>
+  fileChanges: FileDiffType[]
   post: (msg: WebviewMessage) => void
 }
 
-export function MessageBubble({ message, partDeltas, post }: Props) {
+export function MessageBubble({ message, partDeltas, fileChanges, post }: Props) {
   const isUser = message.role === "user"
 
   return (
     <div className={`message ${isUser ? "user" : "assistant"}`}>
-      {/* Avatar */}
       <div className="message-avatar">{isUser ? "U" : "AI"}</div>
 
-      {/* Content */}
       <div className="message-content">
         {isUser ? (
           <UserMessageContent message={message} />
         ) : (
-          <AssistantMessageContent message={message} partDeltas={partDeltas} post={post} />
+          <AssistantMessageContent message={message} partDeltas={partDeltas} fileChanges={fileChanges} post={post} />
         )}
         {message.error && (
           <div className="message-error">⚠ {message.error.message}</div>
@@ -45,10 +47,12 @@ function UserMessageContent({ message }: { message: MessageInfo }) {
 function AssistantMessageContent({
   message,
   partDeltas,
+  fileChanges,
   post,
 }: {
   message: MessageInfo
   partDeltas: Record<string, string>
+  fileChanges: FileDiffType[]
   post: (msg: WebviewMessage) => void
 }) {
   const parts = message.parts ?? []
@@ -56,13 +60,13 @@ function AssistantMessageContent({
   return (
     <div className="message-parts">
       {parts.map((part) => (
-        <Part key={part.id} part={part} delta={partDeltas[part.id]} post={post} />
+        <Part key={part.id} part={part} delta={partDeltas[part.id]} fileChanges={fileChanges} post={post} />
       ))}
     </div>
   )
 }
 
-function Part({ part, delta, post }: { part: PartData; delta?: string; post: (msg: WebviewMessage) => void }) {
+function Part({ part, delta, fileChanges, post }: { part: PartData; delta?: string; fileChanges: FileDiffType[]; post: (msg: WebviewMessage) => void }) {
   switch (part.type) {
     case "text":
       return <TextPart part={part as TextPartData} delta={delta} />
@@ -71,7 +75,7 @@ function Part({ part, delta, post }: { part: PartData; delta?: string; post: (ms
     case "reasoning":
       return <ReasoningPart part={part as ReasoningPartData} />
     case "patch":
-      return <PatchPart part={part as PatchPartData} post={post} />
+      return <PatchPart part={part as PatchPartData} fileChanges={fileChanges} post={post} />
     case "step-start":
     case "step-finish":
     case "compaction":
@@ -85,33 +89,24 @@ function Part({ part, delta, post }: { part: PartData; delta?: string; post: (ms
   }
 }
 
-// Simple markdown renderer using dangerouslySetInnerHTML with basic parsing
 function renderMarkdown(text: string): string {
   if (!text) return ""
   let html = text
-    // Escape HTML first
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    // Code blocks
     .replace(
       /```([a-zA-Z]*)\n([\s\S]*?)```/g,
       (_, lang, code) => `<pre><code class="lang-${lang || "text"}">${code.trimEnd()}</code></pre>`,
     )
-    // Inline code
     .replace(/`([^`\n]+)`/g, "<code>$1</code>")
-    // Bold
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    // Italic
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    // Headers
     .replace(/^### (.+)$/gm, "<h3>$1</h3>")
     .replace(/^## (.+)$/gm, "<h2>$1</h2>")
     .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    // Bullet lists
     .replace(/^[*-] (.+)$/gm, "<li>$1</li>")
     .replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>")
-    // Paragraphs: split by double newline
     .split(/\n\n+/)
     .map((para) => (para.startsWith("<") ? para : `<p>${para.replace(/\n/g, "<br>")}</p>`))
     .join("\n")
@@ -169,36 +164,165 @@ function ReasoningPart({ part }: { part: ReasoningPartData }) {
   )
 }
 
-function PatchPart({ part, post }: { part: PatchPartData; post: (msg: WebviewMessage) => void }) {
+function calculateFirstChangeLine(before: string, after: string): number {
+  const beforeLines = before.split('\n')
+  const afterLines = after.split('\n')
+
+  const minLength = Math.min(beforeLines.length, afterLines.length)
+  for (let i = 0; i < minLength; i++) {
+    if (beforeLines[i] !== afterLines[i]) {
+      return i
+    }
+  }
+
+  if (beforeLines.length !== afterLines.length) {
+    return minLength
+  }
+
+  return 0
+}
+
+function FileDiffView({ diff, filePath, onOpenFile, onShowDiff }: {
+  diff: FileDiffType
+  filePath: string
+  onOpenFile: () => void
+  onShowDiff: () => void
+}) {
+  const fileName = filePath.split('/').pop() || filePath
+  
+  const fileDiffMetadata = useMemo<FileDiffMetadata>(() => {
+    return parseDiffFromFile(
+      {
+        name: fileName,
+        contents: diff.before,
+      },
+      {
+        name: fileName,
+        contents: diff.after,
+      }
+    )
+  }, [diff.before, diff.after, fileName])
+
+  return (
+    <div className="file-diff-view">
+      <div className="file-diff-header">
+        <div className="file-diff-title">
+          <span className="file-diff-name">{fileName}</span>
+          <span className="file-diff-stats">
+            {diff.additions > 0 && <span className="file-diff-add">+{diff.additions}</span>}
+            {diff.deletions > 0 && <span className="file-diff-del">-{diff.deletions}</span>}
+          </span>
+        </div>
+        <div className="file-diff-actions">
+          <button
+            className="file-diff-btn"
+            onClick={onOpenFile}
+            title="打开文件并跳转到第一处变更"
+          >
+            📄
+          </button>
+          <button
+            className="file-diff-btn"
+            onClick={onShowDiff}
+            title="在 VS Code 中显示差异"
+          >
+            🔍
+          </button>
+        </div>
+      </div>
+      <div className="file-diff-content pierre-diff-container">
+        <FileDiff
+          fileDiff={fileDiffMetadata}
+          options={{
+            diffStyle: 'unified',
+            theme: 'pierre-dark',
+            disableLineNumbers: false,
+            expandUnchanged: false,
+            expansionLineCount: 5,
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function PatchPart({ part, fileChanges, post }: { part: PatchPartData; fileChanges: FileDiffType[]; post: (msg: WebviewMessage) => void }) {
   if (!part.files?.length) return null
 
-  const handleOpenFile = (filePath: string) => {
+  useEffect(() => {
+    console.log('[PatchPart] fileChanges updated:', fileChanges.length, 'items')
+    console.log('[PatchPart] files in part:', part.files)
+  }, [fileChanges, part.files])
+
+  const handleOpenFile = (filePath: string, diff?: FileDiffType) => {
     console.log('[PatchPart] Opening file:', filePath)
-    post({ type: "file.open", path: filePath })
+    let line = 0
+    if (diff) {
+      line = calculateFirstChangeLine(diff.before, diff.after)
+      console.log('[PatchPart] First change at line:', line)
+    }
+    post({ type: "file.open", path: filePath, line })
+  }
+
+  const handleShowDiff = (filePath: string, diff?: FileDiffType) => {
+    console.log('[PatchPart] Showing diff for:', filePath)
+    if (diff) {
+      post({ type: "file.diff", path: filePath, before: diff.before, after: diff.after })
+    }
+  }
+
+  const getFileDiff = (filePath: string): FileDiffType | undefined => {
+    let diff = fileChanges.find(fc => fc.file === filePath)
+    if (diff) return diff
+
+    const fileName = filePath.split('/').pop()
+    if (fileName) {
+      diff = fileChanges.find(fc => {
+        const fcFileName = fc.file.split('/').pop()
+        return fcFileName === fileName
+      })
+    }
+
+    console.log('[PatchPart] Looking for:', filePath, 'Found:', diff ? 'yes' : 'no')
+    return diff
   }
 
   return (
     <div className="part-patch">
-      <div className="patch-header">File Changes</div>
+      <div className="patch-header">
+        <span>File Changes</span>
+        <span className="patch-file-count">{part.files.length} files</span>
+      </div>
       <div className="patch-files">
-        {part.files.map((filePath, i) => (
-          <div key={i} className="patch-file">
-            <span 
-              className="patch-path" 
-              onClick={() => handleOpenFile(filePath)} 
-              title="Click to open file"
-            >
-              {filePath}
-            </span>
-            <button 
-              className="patch-open-btn" 
-              onClick={() => handleOpenFile(filePath)} 
-              title="Open file"
-            >
-              📄
-            </button>
-          </div>
-        ))}
+        {part.files.map((filePath, i) => {
+          const diff = getFileDiff(filePath)
+
+          if (!diff) {
+            const fileName = filePath.split('/').pop() || filePath
+            return (
+              <div key={i} className="patch-file-simple">
+                <span className="patch-path-simple">{fileName}</span>
+                <button
+                  className="patch-btn-simple"
+                  onClick={() => handleOpenFile(filePath)}
+                  title="打开文件"
+                >
+                  📄
+                </button>
+              </div>
+            )
+          }
+
+          return (
+            <FileDiffView
+              key={i}
+              diff={diff}
+              filePath={filePath}
+              onOpenFile={() => handleOpenFile(filePath, diff)}
+              onShowDiff={() => handleShowDiff(filePath, diff)}
+            />
+          )
+        })}
       </div>
     </div>
   )
