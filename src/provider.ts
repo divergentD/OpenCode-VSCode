@@ -187,9 +187,13 @@ export class ChatProvider implements vscode.WebviewViewProvider {
       }
       case "session.select": {
         console.log("[opencode] Fetching messages for session:", msg.sessionID)
-        const result = await this.client.session.messages({ sessionID: msg.sessionID, directory: this.directory })
+        const result = await this.client.session.messages({ path: { id: msg.sessionID }, query: { directory: this.directory } })
         console.log("[opencode] Messages result:", result)
-        if (result.data) {
+        if (result.error) {
+          console.error("[opencode] Failed to fetch messages:", result.error)
+          // Send empty messages list so UI doesn't hang
+          this.post({ type: "messages.list", sessionID: msg.sessionID, messages: [] })
+        } else if (result.data) {
           // Transform API response { info, parts } to webview format
           const messages = result.data.map((item: any) => ({
             ...item.info,
@@ -199,25 +203,27 @@ export class ChatProvider implements vscode.WebviewViewProvider {
           this.post({ type: "messages.list", sessionID: msg.sessionID, messages })
         } else {
           console.warn("[opencode] No messages data returned")
+          // Send empty messages list so UI doesn't hang
+          this.post({ type: "messages.list", sessionID: msg.sessionID, messages: [] })
         }
         break
       }
       case "session.delete": {
-        await this.client.session.delete({ sessionID: msg.sessionID, directory: this.directory })
+        await this.client.session.delete({ path: { id: msg.sessionID }, query: { directory: this.directory } })
         this.post({ type: "session.deleted", sessionID: msg.sessionID })
         break
       }
       case "session.abort": {
-        await this.client.session.abort({ sessionID: msg.sessionID, directory: this.directory })
+        await this.client.session.abort({ path: { id: msg.sessionID }, query: { directory: this.directory } })
         break
       }
       case "prompt": {
         console.log("[opencode] Sending prompt:", msg.sessionID, "parts:", msg.parts.length)
         try {
           await this.client.session.prompt({
-            sessionID: msg.sessionID,
-            directory: this.directory,
-            parts: msg.parts,
+            path: { id: msg.sessionID },
+            query: { directory: this.directory },
+            body: { parts: msg.parts },
           })
           console.log("[opencode] Prompt sent successfully")
         } catch (err) {
