@@ -1,4 +1,4 @@
-import type { Session, Message, Event, PermissionRuleset, Part } from "@opencode-ai/sdk"
+import type { Session, Message, Event, Part } from "@opencode-ai/sdk"
 
 export type SelectionContext = {
   text: string
@@ -28,6 +28,15 @@ export type HostMessage =
   | { type: "agents.list"; agents: unknown[] }
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
   | { type: "workspace.missing" }
+  | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
+
+export type FileDiff = {
+  file: string
+  before: string
+  after: string
+  additions: number
+  deletions: number
+}
 
 
 export type WebviewMessage =
@@ -51,3 +60,5 @@ export type WebviewMessage =
   | { type: "providers.list.request" }
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
+  | { type: "file.open"; path: string; line?: number; column?: number }
+  | { type: "file.diff"; path: string; before: string; after: string }

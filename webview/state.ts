@@ -11,6 +11,7 @@ import type {
   CommandInfo,
   AgentInfo,
   ProviderInfo,
+  FileDiff,
 } from "./types"
 
 export type AppState = {
@@ -35,6 +36,7 @@ export type AppState = {
   providers: ProviderInfo[]
   selectedAgent: string | null
   selectedModel: string | null
+  fileChanges: Record<string, FileDiff[]> // sessionID → file changes
 }
 
 export const initialState: AppState = {
@@ -54,6 +56,7 @@ export const initialState: AppState = {
   providers: [],
   selectedAgent: null,
   selectedModel: null,
+  fileChanges: {},
 }
 
 export type Action =
@@ -72,6 +75,7 @@ export type Action =
   | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "agent.select"; agentID: string | null }
   | { type: "model.select"; modelID: string | null }
+  | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
 
 function updatePart(msgs: MessageInfo[], part: PartData): MessageInfo[] {
   const idx = msgs.findIndex((m) => m.id === part.messageID)
@@ -187,6 +191,16 @@ export function reducer(state: AppState, action: Action): AppState {
           const sessions = state.sessions.map((s) => (s.id === info.id ? info : s))
           return { ...state, sessions }
         }
+        case "session.diff": {
+          const { sessionID, diff } = properties as { sessionID: string; diff: FileDiff[] }
+          return {
+            ...state,
+            fileChanges: {
+              ...state.fileChanges,
+              [sessionID]: diff,
+            },
+          }
+        }
         default:
           return state
       }
@@ -259,6 +273,15 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         selectedModel: action.modelID,
+      }
+
+    case "session.diff":
+      return {
+        ...state,
+        fileChanges: {
+          ...state.fileChanges,
+          [action.sessionID]: action.diffs,
+        },
       }
 
     default:

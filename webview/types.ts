@@ -13,6 +13,7 @@ export type HostMessage =
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
   | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "workspace.missing" }
+  | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
 
 
 // WebviewMessage — what webview sends to extension host
@@ -32,6 +33,8 @@ export type WebviewMessage =
   | { type: "symbols.search"; query: string }
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
+  | { type: "file.open"; path: string; line?: number; column?: number }
+  | { type: "file.diff"; path: string; before: string; after: string }
 
 export type PromptPart = { type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }
 
@@ -70,15 +73,9 @@ export type ReasoningPartData = PartBase & {
   text: string
 }
 
-export type FilePatchFile = {
-  path: string
-  additions: number
-  deletions: number
-}
-
 export type PatchPartData = PartBase & {
   type: "patch"
-  files: FilePatchFile[]
+  files: string[]
 }
 
 export type StepStartPartData = PartBase & {
@@ -176,4 +173,19 @@ export type ProblemContext = {
   line: number
   severity: "error" | "warning" | "info"
   message: string
+}
+
+// File change tracking types
+export type FileDiff = {
+  file: string
+  before: string
+  after: string
+  additions: number
+  deletions: number
+}
+
+export type SessionFileChange = {
+  sessionID: string
+  diffs: FileDiff[]
+  lastUpdated: number
 }
