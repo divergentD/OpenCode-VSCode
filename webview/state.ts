@@ -9,6 +9,8 @@ import type {
   SelectionContext,
   ProblemContext,
   CommandInfo,
+  AgentInfo,
+  ProviderInfo,
 } from "./types"
 
 export type AppState = {
@@ -29,6 +31,10 @@ export type AppState = {
     terminal?: string
     files?: unknown[]
   }
+  agents: AgentInfo[]
+  providers: ProviderInfo[]
+  selectedAgent: string | null
+  selectedModel: string | null
 }
 
 export const initialState: AppState = {
@@ -44,6 +50,10 @@ export const initialState: AppState = {
   sessionStatuses: {},
   commands: [],
   contextResolved: {},
+  agents: [],
+  providers: [],
+  selectedAgent: null,
+  selectedModel: null,
 }
 
 export type Action =
@@ -57,6 +67,10 @@ export type Action =
   | { type: "event"; event: SseEvent }
   | { type: "context.resolved"; kind: "selection" | "problems" | "terminal" | "files"; payload: unknown }
   | { type: "commands.list"; commands: CommandInfo[] }
+  | { type: "config.get"; config: { model?: string; default_agent?: string } }
+  | { type: "providers.list"; providers: ProviderInfo[]; default?: Record<string, string>; connected?: string[] }
+  | { type: "agent.select"; agentID: string | null }
+  | { type: "model.select"; modelID: string | null }
 
 function updatePart(msgs: MessageInfo[], part: PartData): MessageInfo[] {
   const idx = msgs.findIndex((m) => m.id === part.messageID)
@@ -185,6 +199,63 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         commands: action.commands,
+      }
+
+    case "agents.list":
+      return {
+        ...state,
+        agents: action.agents,
+      }
+
+    case "providers.list": {
+      // Filter to only show configured (connected) providers
+      const connectedProviders = action.connected
+        ? action.providers.filter((p) => action.connected!.includes(p.id))
+        : action.providers
+
+      return {
+        ...state,
+        providers: connectedProviders,
+      }
+    }
+
+    case "config.get": {
+      // Set default model and agent from user config if not already selected
+      let selectedModel = state.selectedModel
+      let selectedAgent = state.selectedAgent
+      
+      if (!selectedModel && action.config.model) {
+        // Parse model format: "provider/model" or "provider:model"
+        const modelStr = action.config.model
+        if (modelStr.includes('/')) {
+          const [providerId, modelId] = modelStr.split('/')
+          selectedModel = `${providerId}:${modelId}`
+        } else if (modelStr.includes(':')) {
+          selectedModel = modelStr
+        }
+      }
+      
+      if (!selectedAgent && action.config.default_agent) {
+        selectedAgent = action.config.default_agent
+      }
+      
+      return {
+        ...state,
+        selectedModel,
+        selectedAgent,
+      }
+    }
+
+    case "agent.select":
+      return {
+        ...state,
+        selectedAgent: action.agentID,
+      }
+
+    case "model.select":
+      return {
+        ...state,
+        selectedModel: action.modelID,
       }
 
     default:

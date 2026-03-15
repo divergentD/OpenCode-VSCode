@@ -20,7 +20,7 @@ async function buildExtension() {
     sourcemap: !production,
     sourcesContent: false,
     outfile: "dist/extension.js",
-    external: ["vscode"],
+    external: ["vscode", "@opencode-ai/sdk"],
     logLevel: watch ? "silent" : "info",
   })
 

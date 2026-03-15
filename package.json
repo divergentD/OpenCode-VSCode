@@ -1,7 +1,7 @@
 {
   "name": "opencode-chat",
   "displayName": "opencode Chat",
-  "description": "AI-powered chat interface for opencode in VS Code",
+  "description": "AI-powered chat interface for opencode in VS Code:",
   "version": "0.1.0",
   "publisher": "sst-dev",
   "repository": {
@@ -86,10 +86,10 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@opencode-ai/sdk": "workspace:*",
     "react": "^18",
     "react-dom": "^18",
     "marked": "^14",
-    "dompurify": "^3",
-    "@opencode-ai/sdk": "workspace:*"
+    "dompurify": "^3"
   }
 }

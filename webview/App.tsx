@@ -50,11 +50,24 @@ export function App() {
           console.log('[App] Received commands.list with', msg.commands.length, 'commands')
           dispatch({ type: "commands.list", commands: msg.commands })
           break
+        case "providers.list":
+          // Ensure providers is always an array
+          const providers = Array.isArray(msg.providers) ? msg.providers : []
+          dispatch({ type: "providers.list", providers, default: msg.default, connected: msg.connected })
+          break
+        case "agents.list":
+          dispatch({ type: "agents.list", agents: msg.agents })
+          break
+        case "config.get":
+          dispatch({ type: "config.get", config: msg.config })
+          break
       }
     }
     window.addEventListener("message", handle)
     vscode.postMessage({ type: "ready" })
     vscode.postMessage({ type: "commands.list.request" })
+    vscode.postMessage({ type: "providers.list.request" })
+    vscode.postMessage({ type: "agents.list.request" })
     return () => window.removeEventListener("message", handle)
   }, [])
 
