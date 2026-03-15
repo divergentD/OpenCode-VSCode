@@ -9,7 +9,7 @@
     "url": "https://github.com/anomalyco/opencode"
   },
   "license": "MIT",
-  "icon": "images/icon.svg",
+  "icon": "images/mark.svg",
   "galleryBanner": {
     "color": "#000000",
     "theme": "dark"
@@ -30,7 +30,7 @@
         {
           "id": "opencode",
           "title": "opencode",
-          "icon": "./images/button-dark.svg"
+          "icon": "./images/mark.svg"
         }
       ]
     },

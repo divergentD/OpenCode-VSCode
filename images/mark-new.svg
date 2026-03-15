@@ -1,0 +1,19 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <!-- OpenCode Logo: Code brackets for VS Code sidebar -->
+  <!-- Using fill for better VS Code compatibility -->
+  <path d="M8 6L4 12L8 18" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  <path d="M16 6L20 12L16 18" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  <path d="M13 6L11 18" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg>

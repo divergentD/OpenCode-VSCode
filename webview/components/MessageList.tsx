@@ -93,7 +93,7 @@ export function MessageList({ messages, partDeltas, permissions, questions, sess
   return (
     <div className="message-list">
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} />
+        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} post={post} />
       ))}
 
       {permissions.map((req) => (

@@ -61,6 +61,9 @@ export function App() {
         case "config.get":
           dispatch({ type: "config.get", config: msg.config })
           break
+        case "session.diff":
+          dispatch({ type: "session.diff", sessionID: msg.sessionID, diffs: msg.diffs })
+          break
       }
     }
     window.addEventListener("message", handle)

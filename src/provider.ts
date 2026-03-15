@@ -5,6 +5,7 @@ import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { connect, type ServerHandle } from "./server"
 import { MentionResolver } from "./mentions"
 import type { HostMessage, WebviewMessage } from "./types"
+import { DiffContentProvider } from "./diffProvider"
 
 export class ChatProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView
@@ -14,7 +15,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
   private eventAbort = new AbortController()
   private directory?: string
 
-  constructor(private ctx: vscode.ExtensionContext) {
+  constructor(private ctx: vscode.ExtensionContext, private diffProvider: DiffContentProvider) {
     this.mentions = new MentionResolver()
     const folders = vscode.workspace.workspaceFolders
     this.directory = folders?.[0]?.uri.fsPath
@@ -206,6 +207,23 @@ export class ChatProvider implements vscode.WebviewViewProvider {
           // Send empty messages list so UI doesn't hang
           this.post({ type: "messages.list", sessionID: msg.sessionID, messages: [] })
         }
+
+        // Load session diff
+        console.log("[opencode] Fetching diff for session:", msg.sessionID)
+        try {
+          const diffResult = await this.client.session.diff({ path: { id: msg.sessionID }, query: { directory: this.directory } })
+          console.log("[opencode] Diff result:", diffResult)
+          if (diffResult.data) {
+            console.log("[opencode] Sending session.diff with", diffResult.data.length, "diffs")
+            this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: diffResult.data })
+          } else {
+            console.warn("[opencode] No diff data returned")
+            this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
+          }
+        } catch (diffErr) {
+          console.error("[opencode] Failed to fetch diff:", diffErr)
+          this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
+        }
         break
       }
       case "session.delete": {
@@ -290,6 +308,81 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         } catch (err) {
           console.error('[provider] Failed to load agents:', err)
         }
+        break
+      }
+      case "file.open": {
+        if (!this.directory || !msg.path) {
+          console.log('[provider] file.open: missing directory or path')
+          return
+        }
+        const openFilePath = path.isAbsolute(msg.path) ? msg.path : path.join(this.directory, msg.path)
+        console.log('[provider] file.open: opening file at', openFilePath)
+        
+        // Check if file exists
+        const fs = require('fs')
+        if (!fs.existsSync(openFilePath)) {
+          console.error('[provider] file.open: file does not exist', openFilePath)
+          vscode.window.showErrorMessage(`文件不存在: ${msg.path}`)
+          return
+        }
+        
+        const openUri = vscode.Uri.file(openFilePath)
+        const openOptions: vscode.TextDocumentShowOptions = {
+          preview: true,
+        }
+        if (msg.line !== undefined && msg.line >= 0) {
+          openOptions.selection = new vscode.Range(msg.line, msg.column ?? 0, msg.line, msg.column ?? 0)
+        }
+        
+        console.log('[provider] file.open: calling openTextDocument')
+        vscode.workspace.openTextDocument(openUri).then((doc: vscode.TextDocument) => {
+          console.log('[provider] file.open: document opened, calling showTextDocument')
+          return vscode.window.showTextDocument(doc, openOptions)
+        }).then((editor: vscode.TextEditor) => {
+          console.log('[provider] file.open: file opened successfully in editor')
+          // Focus the editor
+          vscode.commands.executeCommand('workbench.action.focusActiveEditorGroup')
+        }, (err: Error) => {
+          console.error('[provider] file.open: error', err)
+          vscode.window.showErrorMessage(`无法打开文件: ${err.message}`)
+        })
+        break
+      }
+      case "file.diff": {
+        if (!this.directory || !msg.path) {
+          console.log('[provider] file.diff: missing directory or path')
+          return
+        }
+        const diffFilePath = path.isAbsolute(msg.path) ? msg.path : path.join(this.directory, msg.path)
+        console.log('[provider] file.diff: showing diff for', diffFilePath)
+
+        // Create URIs for diff view
+        const beforeUri = vscode.Uri.from({
+          scheme: 'opencode-diff',
+          authority: 'before',
+          path: diffFilePath
+        })
+        const afterUri = vscode.Uri.from({
+          scheme: 'opencode-diff',
+          authority: 'after',
+          path: diffFilePath
+        })
+
+        // Set content for the URIs
+        this.diffProvider.setContent(beforeUri, msg.before || '')
+        this.diffProvider.setContent(afterUri, msg.after || '')
+
+        vscode.commands.executeCommand(
+          "vscode.diff",
+          beforeUri,
+          afterUri,
+          `${msg.path} (Changes)`,
+        ).then(() => {
+          console.log('[provider] file.diff: diff shown successfully')
+        }, (err: Error) => {
+          console.error('[provider] file.diff: error showing diff', err)
+          vscode.window.showErrorMessage(`无法显示差异: ${err.message}`)
+        })
         break
       }
     }

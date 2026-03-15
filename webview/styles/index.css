@@ -1172,6 +1172,163 @@ pre code {
   font-weight: 600;
 }
 
+.patch-open-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.patch-open-btn:hover {
+  opacity: 1;
+  background: #2a2a2a;
+}
+
+.patch-path {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.patch-path:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+/* === FILE CHANGE CONTAINER === */
+.file-change-container {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  margin: 8px 16px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.file-change-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  user-select: none;
+}
+
+.file-change-header:hover {
+  background: #252525;
+}
+
+.file-change-toggle {
+  font-size: 10px;
+  color: #888;
+}
+
+.file-change-title {
+  font-weight: 600;
+  color: #e5e5e5;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.file-change-count {
+  color: #888;
+  font-size: 12px;
+}
+
+.file-change-stats {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.file-change-additions {
+  color: #22c55e;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-change-deletions {
+  color: #ef4444;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.file-change-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-change-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #252525;
+}
+
+.file-change-item:last-child {
+  border-bottom: none;
+}
+
+.file-change-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-change-item-name {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  color: #e5e5e5;
+  font-weight: 500;
+}
+
+.file-change-item-path {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 11px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-change-item-stats {
+  display: flex;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.file-change-item-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.file-change-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.file-change-btn:hover {
+  opacity: 1;
+  background: #2a2a2a;
+}
+
 /* === PART TEXT === */
 .part-text {
   font-size: 14px;

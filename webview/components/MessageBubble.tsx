@@ -1,12 +1,14 @@
 import React, { useState } from "react"
 import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData } from "../types"
+import type { WebviewMessage } from "../types"
 
 type Props = {
   message: MessageInfo
   partDeltas: Record<string, string>
+  post: (msg: WebviewMessage) => void
 }
 
-export function MessageBubble({ message, partDeltas }: Props) {
+export function MessageBubble({ message, partDeltas, post }: Props) {
   const isUser = message.role === "user"
 
   return (
@@ -19,7 +21,7 @@ export function MessageBubble({ message, partDeltas }: Props) {
         {isUser ? (
           <UserMessageContent message={message} />
         ) : (
-          <AssistantMessageContent message={message} partDeltas={partDeltas} />
+          <AssistantMessageContent message={message} partDeltas={partDeltas} post={post} />
         )}
         {message.error && (
           <div className="message-error">⚠ {message.error.message}</div>
@@ -43,22 +45,24 @@ function UserMessageContent({ message }: { message: MessageInfo }) {
 function AssistantMessageContent({
   message,
   partDeltas,
+  post,
 }: {
   message: MessageInfo
   partDeltas: Record<string, string>
+  post: (msg: WebviewMessage) => void
 }) {
   const parts = message.parts ?? []
 
   return (
     <div className="message-parts">
       {parts.map((part) => (
-        <Part key={part.id} part={part} delta={partDeltas[part.id]} />
+        <Part key={part.id} part={part} delta={partDeltas[part.id]} post={post} />
       ))}
     </div>
   )
 }
 
-function Part({ part, delta }: { part: PartData; delta?: string }) {
+function Part({ part, delta, post }: { part: PartData; delta?: string; post: (msg: WebviewMessage) => void }) {
   switch (part.type) {
     case "text":
       return <TextPart part={part as TextPartData} delta={delta} />
@@ -67,7 +71,7 @@ function Part({ part, delta }: { part: PartData; delta?: string }) {
     case "reasoning":
       return <ReasoningPart part={part as ReasoningPartData} />
     case "patch":
-      return <PatchPart part={part as PatchPartData} />
+      return <PatchPart part={part as PatchPartData} post={post} />
     case "step-start":
     case "step-finish":
     case "compaction":
@@ -165,19 +169,34 @@ function ReasoningPart({ part }: { part: ReasoningPartData }) {
   )
 }
 
-function PatchPart({ part }: { part: PatchPartData }) {
+function PatchPart({ part, post }: { part: PatchPartData; post: (msg: WebviewMessage) => void }) {
   if (!part.files?.length) return null
+
+  const handleOpenFile = (filePath: string) => {
+    console.log('[PatchPart] Opening file:', filePath)
+    post({ type: "file.open", path: filePath })
+  }
+
   return (
     <div className="part-patch">
       <div className="patch-header">File Changes</div>
       <div className="patch-files">
-        {part.files.map((f, i) => (
+        {part.files.map((filePath, i) => (
           <div key={i} className="patch-file">
-            <span className="patch-path">{f.path}</span>
-            <div className="patch-stats">
-              {f.additions > 0 && <span className="patch-additions">+{f.additions}</span>}
-              {f.deletions > 0 && <span className="patch-deletions">-{f.deletions}</span>}
-            </div>
+            <span 
+              className="patch-path" 
+              onClick={() => handleOpenFile(filePath)} 
+              title="Click to open file"
+            >
+              {filePath}
+            </span>
+            <button 
+              className="patch-open-btn" 
+              onClick={() => handleOpenFile(filePath)} 
+              title="Open file"
+            >
+              📄
+            </button>
           </div>
         ))}
       </div>

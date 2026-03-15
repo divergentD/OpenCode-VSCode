@@ -4,6 +4,7 @@ import type { WebviewMessage } from "../types"
 import { MessageList } from "./MessageList"
 import { PromptInput } from "./PromptInput"
 import { SessionDrawer } from "./SessionDrawer"
+import { FileChangeContainer } from "./FileChangeContainer"
 
 type Props = {
   state: AppState
@@ -74,6 +75,14 @@ export function ChatPanel({ state, dispatch, post }: Props) {
         hasSession={!!state.activeSessionID}
         post={post}
       />
+
+      {/* File Changes Container */}
+      {state.activeSessionID && state.fileChanges[state.activeSessionID] && (
+        <FileChangeContainer
+          diffs={state.fileChanges[state.activeSessionID]}
+          post={post}
+        />
+      )}
 
       {/* Input Area */}
       <div className="input-container">
