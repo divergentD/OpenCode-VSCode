@@ -73,6 +73,7 @@ export function ChatPanel({ state, dispatch, post }: Props) {
         questions={state.questions}
         sessionStatus={activeStatus}
         hasSession={!!state.activeSessionID}
+        fileChanges={state.activeSessionID ? (state.fileChanges[state.activeSessionID] ?? []) : []}
         post={post}
       />
 

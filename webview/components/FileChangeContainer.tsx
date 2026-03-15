@@ -7,6 +7,24 @@ type Props = {
   post: (msg: WebviewMessage) => void
 }
 
+function calculateFirstChangeLine(before: string, after: string): number {
+  const beforeLines = before.split('\n')
+  const afterLines = after.split('\n')
+
+  const minLength = Math.min(beforeLines.length, afterLines.length)
+  for (let i = 0; i < minLength; i++) {
+    if (beforeLines[i] !== afterLines[i]) {
+      return i
+    }
+  }
+
+  if (beforeLines.length !== afterLines.length) {
+    return minLength
+  }
+
+  return 0
+}
+
 export function FileChangeContainer({ diffs, post }: Props) {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -45,7 +63,9 @@ function FileChangeItem({ diff, post }: { diff: FileDiff; post: (msg: WebviewMes
 
   const handleOpenFile = () => {
     console.log('[FileChangeItem] Opening file:', filePath)
-    post({ type: "file.open", path: filePath })
+    const line = calculateFirstChangeLine(diff.before, diff.after)
+    console.log('[FileChangeItem] First change at line:', line)
+    post({ type: "file.open", path: filePath, line })
   }
 
   const handleShowDiff = () => {
@@ -68,10 +88,10 @@ function FileChangeItem({ diff, post }: { diff: FileDiff; post: (msg: WebviewMes
         {diff.deletions > 0 && <span className="file-change-deletions">-{diff.deletions}</span>}
       </div>
       <div className="file-change-item-actions">
-        <button className="file-change-btn" onClick={handleOpenFile} title="Open file">
+        <button className="file-change-btn" onClick={handleOpenFile} title="打开文件并跳转到第一处变更">
           📄
         </button>
-        <button className="file-change-btn" onClick={handleShowDiff} title="Show diff">
+        <button className="file-change-btn" onClick={handleShowDiff} title="显示差异">
           🔍
         </button>
       </div>
