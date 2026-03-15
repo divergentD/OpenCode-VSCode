@@ -176,8 +176,10 @@ export function reducer(state: AppState, action: Action): AppState {
           return { ...state, questions: state.questions.filter((q) => q.requestID !== id) }
         }
         case "session.status": {
-          const { sessionID, status } = properties as { sessionID: string; status: SessionStatus }
-          return { ...state, sessionStatuses: { ...state.sessionStatuses, [sessionID]: status } }
+          const { sessionID, status } = properties as { sessionID: string; status: SessionStatus | { type: SessionStatus } }
+          // Handle both string status and object { type: status }
+          const statusValue: SessionStatus = typeof status === 'string' ? status : (status as { type: SessionStatus }).type
+          return { ...state, sessionStatuses: { ...state.sessionStatuses, [sessionID]: statusValue } }
         }
         case "session.updated": {
           const info = properties.info as SessionInfo

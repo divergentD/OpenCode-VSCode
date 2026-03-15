@@ -20,6 +20,12 @@ export function ChatPanel({ state, dispatch, post }: Props) {
 
   const activeSession = state.sessions.find((s) => s.id === state.activeSessionID)
 
+  const handleAbort = () => {
+    if (state.activeSessionID) {
+      post({ type: "session.abort", sessionID: state.activeSessionID })
+    }
+  }
+
   return (
     <div className="chat-panel">
       {/* Top Bar */}
@@ -71,6 +77,16 @@ export function ChatPanel({ state, dispatch, post }: Props) {
 
       {/* Input Area */}
       <div className="input-container">
+        {/* Thinking Indicator */}
+        {activeStatus === "busy" && (
+          <div className="thinking-indicator">
+            <div className="thinking-spinner" />
+            <span className="thinking-text">思考中</span>
+            <button className="btn-stop" onClick={handleAbort} title="停止">
+              ⏹
+            </button>
+          </div>
+        )}
         <PromptInput
           disabled={activeStatus === "busy"}
           contextResolved={state.contextResolved}
