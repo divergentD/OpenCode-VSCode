@@ -64,6 +64,36 @@ async function buildWebview() {
   }
 }
 
+/**
+ * Build configuration for File Changes Webview (Browser/React)
+ */
+async function buildFileChangesWebview() {
+  console.log("Building file changes webview...")
+
+  const ctx = await esbuild.context({
+    entryPoints: ["fileChangesWebview/index.tsx"],
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: "es2020",
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    outfile: "dist/fileChangesWebview.js",
+    logLevel: watch ? "silent" : "info",
+  })
+
+  if (watch) {
+    await ctx.watch()
+    console.log("[watch] File changes webview watching...")
+  } else {
+    await ctx.rebuild()
+    await ctx.dispose()
+    console.log("✓ dist/fileChangesWebview.js")
+    console.log("✓ dist/fileChangesWebview.css")
+  }
+}
+
 async function main() {
   try {
     const tasks = []
@@ -74,6 +104,7 @@ async function main() {
 
     if (!target || target === "webview") {
       tasks.push(buildWebview())
+      tasks.push(buildFileChangesWebview())
     }
 
     await Promise.all(tasks)
