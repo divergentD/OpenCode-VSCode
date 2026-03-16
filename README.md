@@ -1,9 +1,9 @@
-# opencode Chat
+# OpenCode Chat
 
 ![VS Code:](https://img.shields.io/badge/VS%20Code:-1.94.0+-blue?style=flat-square&logo=visual-studio-code)
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)
 
-opencode Chat 是一个为 VS Code: 设计的 AI 驱动聊天界面扩展，让你在编辑器中直接与 AI 助手对话。
+OpenCode Chat 是一个为 VS Code: 设计的 AI 驱动聊天界面扩展，让你在编辑器中直接与 AI 助手对话。
 
 ## ✨ 功能特性
 

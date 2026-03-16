@@ -2,6 +2,7 @@ src/**
 webview/**
 node_modules/**
 *.ts
+*.vsix
 esbuild.js
 tsconfig*.json
 bun.lock
