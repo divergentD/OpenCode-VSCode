@@ -1,15 +1,15 @@
 {
   "name": "opencode-chat",
-  "displayName": "opencode Chat",
+  "displayName": "OpenCode Chat",
   "description": "AI-powered chat interface for opencode in VS Code:",
   "version": "0.1.0",
-  "publisher": "sst-dev",
+  "publisher": "divergent",
   "repository": {
     "type": "git",
-    "url": "https://github.com/anomalyco/opencode"
+    "url": "https://github.com/divergentD/OpenCode-VSCode"
   },
   "license": "MIT",
-  "icon": "images/mark.svg",
+  "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#000000",
     "theme": "dark"
