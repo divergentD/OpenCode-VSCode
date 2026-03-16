@@ -32,6 +32,13 @@
           "title": "opencode",
           "icon": "./images/mark.svg"
         }
+      ],
+      "auxiliarybar": [
+        {
+          "id": "opencode-changes",
+          "title": "Changes",
+          "icon": "./images/mark.svg"
+        }
       ]
     },
     "views": {
@@ -40,6 +47,13 @@
           "id": "opencode.chat",
           "type": "webview",
           "name": "Chat"
+        }
+      ],
+      "opencode-changes": [
+        {
+          "id": "opencode.fileChanges",
+          "type": "webview",
+          "name": "Changes"
         }
       ]
     },
@@ -55,6 +69,11 @@
       {
         "command": "opencode.attachSelection",
         "title": "opencode: Attach Selection"
+      },
+      {
+        "command": "opencode.showFileChanges",
+        "title": "opencode: Show File Changes",
+        "icon": "$(diff)"
       }
     ],
     "keybindings": [

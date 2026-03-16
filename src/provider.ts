@@ -4,8 +4,9 @@ import * as crypto from "crypto"
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
 import { connect, type ServerHandle } from "./server"
 import { MentionResolver } from "./mentions"
-import type { HostMessage, WebviewMessage } from "./types"
+import type { HostMessage, WebviewMessage, FileDiff } from "./types"
 import { DiffContentProvider } from "./diffProvider"
+import type { FileChangesPanelProvider } from "./FileChangesPanelProvider"
 
 export class ChatProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView
@@ -14,12 +15,26 @@ export class ChatProvider implements vscode.WebviewViewProvider {
   private mentions: MentionResolver
   private eventAbort = new AbortController()
   private directory?: string
+  private activeSessionID?: string
+  private activeSessionDiffs: FileDiff[] = []
 
-  constructor(private ctx: vscode.ExtensionContext, private diffProvider: DiffContentProvider) {
+  constructor(
+    private ctx: vscode.ExtensionContext,
+    private diffProvider: DiffContentProvider,
+    private fileChangesProvider?: FileChangesPanelProvider
+  ) {
     this.mentions = new MentionResolver()
     const folders = vscode.workspace.workspaceFolders
     this.directory = folders?.[0]?.uri.fsPath
     ctx.subscriptions.push(this.mentions)
+  }
+
+  public getActiveSessionID(): string | undefined {
+    return this.activeSessionID
+  }
+
+  public getActiveSessionDiffs(): FileDiff[] {
+    return this.activeSessionDiffs
   }
 
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
@@ -148,7 +163,16 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         if (payload.type === "message.part.updated" && payload.properties?.part) {
           // Part is already in the right format
         }
-        
+
+        // Handle session.diff events to update the file changes panel
+        if (payload.type === "session.diff" && payload.properties) {
+          const { sessionID, diff } = payload.properties as { sessionID: string; diff: FileDiff[] }
+          if (sessionID === this.activeSessionID) {
+            this.activeSessionDiffs = diff
+            this.fileChangesProvider?.updateDiffs(sessionID, diff)
+          }
+        }
+
         this.post({ type: "event", event: payload })
       }
       console.log("[opencode] Event stream ended, restarting...")
@@ -213,15 +237,23 @@ export class ChatProvider implements vscode.WebviewViewProvider {
         try {
           const diffResult = await this.client.session.diff({ path: { id: msg.sessionID }, query: { directory: this.directory } })
           console.log("[opencode] Diff result:", diffResult)
-          if (diffResult.data) {
+          this.activeSessionID = msg.sessionID
+          if (diffResult.data && diffResult.data.length > 0) {
             console.log("[opencode] Sending session.diff with", diffResult.data.length, "diffs")
+            this.activeSessionDiffs = diffResult.data
             this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: diffResult.data })
+            this.fileChangesProvider?.show(msg.sessionID, diffResult.data)
+            vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar")
+            vscode.commands.executeCommand("opencode.fileChanges.focus")
           } else {
             console.warn("[opencode] No diff data returned")
+            this.activeSessionDiffs = []
             this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
+            this.fileChangesProvider?.show(msg.sessionID, [])
           }
         } catch (diffErr) {
           console.error("[opencode] Failed to fetch diff:", diffErr)
+          this.activeSessionDiffs = []
           this.post({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
         }
         break
