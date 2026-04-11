@@ -1,0 +1,49 @@
+import * as vscode from "vscode"
+import * as path from "path"
+import type { FileChangesPanelProvider } from "../FileChangesPanelProvider"
+
+export function handleFileDiff(
+  provider: FileChangesPanelProvider,
+  msg: { type: string; path?: string; before?: string; after?: string }
+): void {
+  if (!msg.path || msg.before === undefined || msg.after === undefined) return
+
+  console.log("[FileChangesPanelProvider] Showing diff for:", msg.path)
+
+  const folders = vscode.workspace.workspaceFolders
+  const directory = folders?.[0]?.uri.fsPath
+
+  if (!directory) {
+    console.error("[FileChangesPanelProvider] No workspace folder found")
+    return
+  }
+
+  const fullPath = path.isAbsolute(msg.path) ? msg.path : path.join(directory, msg.path)
+
+  const beforeUri = vscode.Uri.from({
+    scheme: "opencode-diff",
+    authority: "before",
+    path: fullPath,
+  })
+  const afterUri = vscode.Uri.from({
+    scheme: "opencode-diff",
+    authority: "after",
+    path: fullPath,
+  })
+
+  const diffProvider = (provider as unknown as { diffProvider: { setContent: (uri: vscode.Uri, content: string) => void } }).diffProvider
+  diffProvider.setContent(beforeUri, msg.before || "")
+  diffProvider.setContent(afterUri, msg.after || "")
+
+  vscode.commands
+    .executeCommand("vscode.diff", beforeUri, afterUri, `${path.basename(msg.path)} (Changes)`)
+    .then(
+      () => {
+        console.log("[FileChangesPanelProvider] Diff shown successfully")
+      },
+      (err: Error) => {
+        console.error("[FileChangesPanelProvider] Error showing diff:", err)
+        vscode.window.showErrorMessage(`无法显示差异: ${err.message}`)
+      }
+    )
+}
