@@ -64,7 +64,7 @@ export function AgentModelSelector({
   }, [providers])
 
   const filteredAgents = useMemo(() => {
-    const primaryAgents = agents.filter((a) => a.mode === "all")
+    const primaryAgents = agents.filter((a) => a.mode === "primary" || a.mode === "all")
     if (!agentQuery.trim()) return primaryAgents
     const query = agentQuery.toLowerCase()
     return primaryAgents.filter(
