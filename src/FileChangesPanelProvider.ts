@@ -3,6 +3,7 @@ import * as path from "path"
 import * as crypto from "crypto"
 import type { FileDiff } from "./types"
 import { DiffContentProvider } from "./diffProvider"
+import { messageHandlers } from "./handlers"
 
 export type FileChangesMessage =
   | { type: "init"; sessionID: string; diffs: FileDiff[] }
@@ -69,80 +70,10 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
   }
 
   private handleMessage(msg: { type: string; path?: string; before?: string; after?: string; line?: number }): void {
-    switch (msg.type) {
-      case "file.open":
-        if (msg.path) {
-          this.openFile(msg.path, msg.line)
-        }
-        break
-      case "file.diff":
-        if (msg.path && msg.before !== undefined && msg.after !== undefined) {
-          this.showDiff(msg.path, msg.before, msg.after)
-        }
-        break
+    const handler = messageHandlers[msg.type]
+    if (handler) {
+      handler(this, msg as Record<string, unknown>)
     }
-  }
-
-  private openFile(filePath: string, line?: number): void {
-    const folders = vscode.workspace.workspaceFolders
-    const directory = folders?.[0]?.uri.fsPath
-
-    if (!directory) return
-
-    const fullPath = path.isAbsolute(filePath) ? filePath : path.join(directory, filePath)
-    const uri = vscode.Uri.file(fullPath)
-
-    const options: vscode.TextDocumentShowOptions = {
-      preview: true,
-    }
-
-    if (line !== undefined && line >= 0) {
-      options.selection = new vscode.Range(line, 0, line, 0)
-    }
-
-    vscode.workspace.openTextDocument(uri).then((doc) => {
-      vscode.window.showTextDocument(doc, options)
-    })
-  }
-
-  private showDiff(filePath: string, before: string, after: string): void {
-    console.log('[FileChangesPanelProvider] Showing diff for:', filePath)
-    
-    const folders = vscode.workspace.workspaceFolders
-    const directory = folders?.[0]?.uri.fsPath
-    
-    if (!directory) {
-      console.error('[FileChangesPanelProvider] No workspace folder found')
-      return
-    }
-    
-    const fullPath = path.isAbsolute(filePath) ? filePath : path.join(directory, filePath)
-    
-    const beforeUri = vscode.Uri.from({
-      scheme: 'opencode-diff',
-      authority: 'before',
-      path: fullPath
-    })
-    const afterUri = vscode.Uri.from({
-      scheme: 'opencode-diff',
-      authority: 'after',
-      path: fullPath
-    })
-    
-    this.diffProvider.setContent(beforeUri, before || '')
-    this.diffProvider.setContent(afterUri, after || '')
-    
-    vscode.commands.executeCommand(
-      "vscode.diff",
-      beforeUri,
-      afterUri,
-      `${path.basename(filePath)} (Changes)`,
-    ).then(() => {
-      console.log('[FileChangesPanelProvider] Diff shown successfully')
-    }, (err: Error) => {
-      console.error('[FileChangesPanelProvider] Error showing diff:', err)
-      vscode.window.showErrorMessage(`无法显示差异: ${err.message}`)
-    })
   }
 
   private getHtml(webview: vscode.Webview): string {

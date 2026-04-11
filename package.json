@@ -93,7 +93,10 @@
     "watch": "node esbuild.js --watch",
     "watch:extension": "node esbuild.js --watch --target=extension",
     "watch:webview": "node esbuild.js --watch --target=webview",
-    "package": "node esbuild.js --production"
+    "package": "node esbuild.js --production",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:run": "vitest run"
   },
   "devDependencies": {
     "@types/dompurify": "^3",
@@ -101,8 +104,11 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/vscode": "^1.94.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "@vscode/test-cli": "^0.0.12",
     "esbuild": "^0.25.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.4"
   },
   "dependencies": {
     "@opencode-ai/sdk": "1.2.26",

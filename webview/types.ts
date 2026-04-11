@@ -35,6 +35,7 @@ export type WebviewMessage =
   | { type: "mention.resolve"; kind: "selection" | "problems" | "terminal" }
   | { type: "files.search"; query: string }
   | { type: "symbols.search"; query: string }
+  | { type: "providers.list.request" }
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
   | { type: "file.open"; path: string; line?: number; column?: number }
@@ -65,6 +66,7 @@ export type TextPartData = PartBase & {
 
 export type ToolPartData = PartBase & {
   type: "tool"
+  tool?: string
   toolName: string
   state: {
     status: "pending" | "running" | "completed" | "error"

@@ -1,4 +1,5 @@
 import type { FileDiff } from "./types"
+import { actionRegistry } from "./reducers"
 
 export type AppState = {
   sessionID: string | null
@@ -23,61 +24,6 @@ export type Action =
   | { type: "toggle.all" }
 
 export function reducer(state: AppState, action: Action): AppState {
-  switch (action.type) {
-    case "init":
-      return {
-        sessionID: action.sessionID,
-        diffs: action.diffs,
-        expandedFiles: new Set(),
-      }
-
-    case "update":
-      return {
-        ...state,
-        sessionID: action.sessionID,
-        diffs: action.diffs,
-      }
-
-    case "file.toggle": {
-      const newExpanded = new Set(state.expandedFiles)
-      if (newExpanded.has(action.file)) {
-        newExpanded.delete(action.file)
-      } else {
-        newExpanded.add(action.file)
-      }
-      return { ...state, expandedFiles: newExpanded }
-    }
-
-    case "file.expand": {
-      const newExpanded = new Set(state.expandedFiles)
-      newExpanded.add(action.file)
-      return { ...state, expandedFiles: newExpanded }
-    }
-
-    case "file.collapse": {
-      const newExpanded = new Set(state.expandedFiles)
-      newExpanded.delete(action.file)
-      return { ...state, expandedFiles: newExpanded }
-    }
-
-    case "expand.all":
-      return {
-        ...state,
-        expandedFiles: new Set(state.diffs.map((d) => d.file)),
-      }
-
-    case "collapse.all":
-      return { ...state, expandedFiles: new Set() }
-
-    case "toggle.all": {
-      const allExpanded = state.expandedFiles.size === state.diffs.length
-      return {
-        ...state,
-        expandedFiles: allExpanded ? new Set() : new Set(state.diffs.map((d) => d.file)),
-      }
-    }
-
-    default:
-      return state
-  }
+  const handler = actionRegistry[action.type]
+  return handler ? handler(state, action) : state
 }
