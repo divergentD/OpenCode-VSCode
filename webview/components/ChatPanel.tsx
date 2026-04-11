@@ -4,6 +4,7 @@ import type { WebviewMessage } from "../types"
 import { MessageList } from "./MessageList"
 import { PromptInput } from "./PromptInput"
 import { SessionDrawer } from "./SessionDrawer"
+import { TodoList } from "./TodoList"
 
 type Props = {
   state: AppState
@@ -74,6 +75,13 @@ export function ChatPanel({ state, dispatch, post }: Props) {
         hasSession={!!state.activeSessionID}
         fileChanges={state.activeSessionID ? (state.fileChanges[state.activeSessionID] ?? []) : []}
         post={post}
+      />
+
+      <TodoList
+        todos={state.activeSessionID ? (state.todos[state.activeSessionID] ?? []) : []}
+        sessionID={state.activeSessionID}
+        post={post}
+        isVisible={!!state.activeSessionID}
       />
 
       {/* Input Area */}

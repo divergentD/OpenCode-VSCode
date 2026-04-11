@@ -14,6 +14,10 @@ export type HostMessage =
   | { type: "agents.list"; agents: AgentInfo[] }
   | { type: "workspace.missing" }
   | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
+  | { type: "todos.list"; sessionID: string; todos: TodoItem[] }
+  | { type: "todo.created"; todo: TodoItem }
+  | { type: "todo.updated"; todo: TodoItem }
+  | { type: "todo.deleted"; todoID: string; sessionID: string }
 
 
 // WebviewMessage — what webview sends to extension host
@@ -35,6 +39,10 @@ export type WebviewMessage =
   | { type: "agents.list.request" }
   | { type: "file.open"; path: string; line?: number; column?: number }
   | { type: "file.diff"; path: string; before: string; after: string }
+  | { type: "todo.create"; sessionID: string; title: string; description?: string; priority?: "low" | "medium" | "high" }
+  | { type: "todo.update"; todoID: string; updates: Partial<Omit<TodoItem, "id" | "sessionID" | "createdAt">> }
+  | { type: "todo.delete"; todoID: string }
+  | { type: "todos.list.request"; sessionID: string }
 
 export type PromptPart = { type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }
 
@@ -138,6 +146,20 @@ export type QuestionRequest = {
 }
 
 export type SessionStatus = "idle" | "busy" | "error"
+
+export type TodoStatus = "pending" | "in_progress" | "completed"
+
+export type TodoItem = {
+  id: string
+  sessionID: string
+  title: string
+  description?: string
+  status: TodoStatus
+  priority?: "low" | "medium" | "high"
+  createdAt: number
+  updatedAt?: number
+  [key: string]: unknown
+}
 
 // Command info from SDK
 export type CommandInfo = {
