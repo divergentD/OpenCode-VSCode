@@ -64,6 +64,9 @@ export function App() {
         case "session.diff":
           dispatch({ type: "session.diff", sessionID: msg.sessionID, diffs: msg.diffs })
           break
+        case "theme.changed":
+          document.body.setAttribute("data-theme", msg.theme.kind)
+          break
       }
     }
     window.addEventListener("message", handle)
