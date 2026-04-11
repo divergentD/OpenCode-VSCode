@@ -225,6 +225,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
             parts: item.parts || []
           }))
           console.log("[opencode] Sending messages.list with", messages.length, "messages")
+          console.log("[opencode] First message sample:", messages[0] ? JSON.stringify(messages[0], null, 2) : 'none')
+          console.log("[opencode] Messages with parts:", messages.filter((m: any) => m.parts && m.parts.length > 0).length)
           this.post({ type: "messages.list", sessionID: msg.sessionID, messages })
         } else {
           console.warn("[opencode] No messages data returned")
