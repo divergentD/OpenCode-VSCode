@@ -29,6 +29,7 @@ export type HostMessage =
   | { type: "config.get"; config: { model?: string; default_agent?: string } }
   | { type: "workspace.missing" }
   | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
+  | { type: "theme.changed"; theme: { kind: "light" | "dark" | "highContrast" | "highContrastLight" } }
 
 export type FileDiff = {
   file: string

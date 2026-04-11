@@ -28,6 +28,12 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     const folders = vscode.workspace.workspaceFolders
     this.directory = folders?.[0]?.uri.fsPath
     ctx.subscriptions.push(this.mentions)
+    
+    ctx.subscriptions.push(
+      vscode.window.onDidChangeActiveColorTheme((theme) => {
+        this.postThemeChange(theme)
+      })
+    )
   }
 
   public getActiveSessionID(): string | undefined {
@@ -48,6 +54,8 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     view.webview.onDidReceiveMessage((msg: WebviewMessage) => this.handleMessage(msg))
 
     await this.initServer()
+    
+    this.postThemeChange(vscode.window.activeColorTheme)
   }
 
   private async initServer(): Promise<void> {
@@ -239,6 +247,27 @@ export class ChatProvider implements vscode.WebviewViewProvider {
       this.post({ type: "context.resolved", kind: "selection", payload: sel })
       vscode.commands.executeCommand("opencode.chat.focus")
     }
+  }
+
+  private postThemeChange(theme: vscode.ColorTheme): void {
+    let kind: "light" | "dark" | "highContrast" | "highContrastLight"
+    switch (theme.kind) {
+      case vscode.ColorThemeKind.Light:
+        kind = "light"
+        break
+      case vscode.ColorThemeKind.Dark:
+        kind = "dark"
+        break
+      case vscode.ColorThemeKind.HighContrast:
+        kind = "highContrast"
+        break
+      case vscode.ColorThemeKind.HighContrastLight:
+        kind = "highContrastLight"
+        break
+      default:
+        kind = "dark"
+    }
+    this.post({ type: "theme.changed", theme: { kind } })
   }
 
   dispose(): void {
