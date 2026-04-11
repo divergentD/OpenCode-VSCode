@@ -18,6 +18,7 @@ export type HostMessage =
   | { type: "todo.created"; todo: TodoItem }
   | { type: "todo.updated"; todo: TodoItem }
   | { type: "todo.deleted"; todoID: string; sessionID: string }
+  | { type: "theme.changed"; theme: { kind: "light" | "dark" | "highContrast" | "highContrastLight" } }
 
 
 // WebviewMessage — what webview sends to extension host
