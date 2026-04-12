@@ -1,0 +1,45 @@
+.mention-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 16px;
+  right: 16px;
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  margin-bottom: 8px;
+}
+
+.mention-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--vscode-dropdown-border);
+}
+
+.mention-menu-item:last-child {
+  border-bottom: none;
+}
+
+.mention-menu-item:hover,
+.mention-menu-item.active {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.mention-menu-item .label {
+  font-size: 13px;
+  color: var(--vscode-dropdown-foreground);
+  font-family: "SF Mono", Monaco, monospace;
+}
+
+.mention-menu-item .desc {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  margin-left: auto;
+}

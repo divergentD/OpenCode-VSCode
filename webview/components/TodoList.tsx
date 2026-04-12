@@ -1,4 +1,5 @@
 import React from "react"
+import "./TodoList.css"
 import type { TodoItem, TodoStatus, WebviewMessage } from "../types"
 
 type Props = {

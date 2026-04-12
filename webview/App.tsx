@@ -2,6 +2,7 @@ import React, { useReducer, useEffect, useCallback } from "react"
 import { reducer, initialState, type Action } from "./state"
 import type { HostMessage, WebviewMessage } from "./types"
 import { ChatPanel } from "./components/ChatPanel"
+import "./App.css"
 
 declare function acquireVsCodeApi(): {
   postMessage(msg: WebviewMessage): void

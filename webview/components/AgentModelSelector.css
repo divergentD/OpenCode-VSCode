@@ -1,0 +1,218 @@
+.agent-model-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--vscode-sideBar-border);
+}
+
+.selector-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.selector-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 6px;
+  color: var(--vscode-dropdown-foreground);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  height: 32px;
+}
+
+.selector-button:hover:not(:disabled) {
+  border-color: var(--vscode-focusBorder);
+}
+
+.selector-button.open,
+.selector-button:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.selector-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selector-button-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.selector-button-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-button-arrow {
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: var(--vscode-descriptionForeground);
+}
+
+.selector-button-arrow.open {
+  transform: rotate(180deg);
+}
+
+.selector-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dropdownSlideIn 0.15s ease-out;
+}
+
+.selector-dropdown.agent-dropdown {
+  max-height: 280px;
+}
+
+.selector-dropdown.model-dropdown {
+  max-height: 400px;
+}
+
+.selector-dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vscode-dropdown-border);
+  position: relative;
+  background: var(--vscode-dropdown-background);
+}
+
+.selector-dropdown-search .search-icon {
+  flex-shrink: 0;
+  color: var(--vscode-descriptionForeground);
+}
+
+.selector-dropdown-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--vscode-dropdown-foreground);
+  font-size: 13px;
+  padding: 4px 20px 4px 0;
+}
+
+.selector-dropdown-search input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.selector-dropdown-search .clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.selector-dropdown-search .clear-search:hover {
+  background: var(--vscode-list-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.selector-dropdown-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+}
+
+.selector-dropdown-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 14px;
+}
+
+.selector-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--vscode-dropdown-foreground);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+
+.selector-option:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.selector-option.selected {
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.selector-option-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selector-option .check-icon {
+  flex-shrink: 0;
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.model-group {
+  margin-bottom: 4px;
+}
+
+.model-group-header {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.model-group:last-child {
+  margin-bottom: 0;
+}

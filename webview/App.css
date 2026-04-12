@@ -1,0 +1,35 @@
+.state-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  text-align: center;
+  padding: 32px;
+}
+
+.state-icon {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.state-icon.error {
+  color: var(--vscode-errorForeground);
+}
+
+.state-detail {
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  max-width: 400px;
+  margin-top: 8px;
+}
+
+.state-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--vscode-progressBar-background);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}

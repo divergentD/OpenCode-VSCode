@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react"
+import "./CommandMenu.css"
 import type { CommandInfo } from "../types"
 
 type Props = {
