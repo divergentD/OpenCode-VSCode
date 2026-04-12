@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"
+import "./SessionDrawer.css"
 import type { SessionInfo, SessionStatus } from "../types"
 
 type Props = {

@@ -5,6 +5,7 @@ import { MessageBubble } from "./MessageBubble"
 import { PermissionDialog } from "./PermissionDialog"
 import { QuestionDialog } from "./QuestionDialog"
 import { ScrollToBottomButton } from "./ScrollToBottomButton"
+import "./MessageList.css"
 
 type Props = {
   messages: MessageInfo[]

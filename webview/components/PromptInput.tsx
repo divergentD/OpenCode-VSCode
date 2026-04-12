@@ -3,6 +3,7 @@ import type { WebviewMessage, PromptPart, SelectionContext, ProblemContext, Comm
 import { MentionMenu } from "./MentionMenu"
 import { CommandMenu } from "./CommandMenu"
 import { AgentModelSelector } from "./AgentModelSelector"
+import "./PromptInput.css"
 
 type Chip =
   | { kind: "selection"; context: SelectionContext }

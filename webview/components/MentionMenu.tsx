@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import type { WebviewMessage } from "../types"
+import "./MentionMenu.css"
 
 type MentionOption = {
   kind: "selection" | "problems" | "terminal" | "file" | "workspace"

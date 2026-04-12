@@ -4,6 +4,7 @@ import { parseDiffFromFile } from "@pierre/diffs"
 import type { FileDiffMetadata } from "@pierre/diffs"
 import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, FileDiff as FileDiffType } from "../types"
 import type { WebviewMessage } from "../types"
+import "./MessageBubble.css"
 
 type Props = {
   message: MessageInfo

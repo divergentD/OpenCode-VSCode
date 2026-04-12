@@ -6,3 +6,5 @@ node_modules/**
 esbuild.js
 tsconfig*.json
 bun.lock
+.agents/**
+.opencode/**

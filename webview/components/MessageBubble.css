@@ -1,0 +1,310 @@
+.message {
+  display: flex;
+  gap: 12px;
+  max-width: 100%;
+  padding: 8px 16px;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message.user .message-content {
+  align-items: flex-end;
+}
+
+.message.assistant .message-content {
+  align-items: flex-start;
+}
+
+.message-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100% - 40px);
+}
+
+.message-bubble {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 85%;
+}
+
+.message.user .message-bubble {
+  background: var(--vscode-textCodeBlock-background);
+  color: var(--vscode-foreground);
+  border-bottom-right-radius: 4px;
+}
+
+.message.assistant .message-bubble {
+  background: transparent;
+  color: var(--vscode-foreground);
+  padding-left: 0;
+  max-width: 100%;
+}
+
+.message-error {
+  padding: 4px 12px;
+  color: var(--vscode-errorForeground);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.message.user .message-error {
+  text-align: right;
+}
+
+.message-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.tool-call {
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.tool-call-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--vscode-dropdown-background);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tool-call-header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.tool-call-name {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+}
+
+.tool-call-title {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+.tool-call-toggle {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.tool-call-body {
+  padding: 12px;
+  border-top: 1px solid var(--vscode-dropdown-border);
+  background: var(--vscode-sideBar-background);
+}
+
+.tool-call-output,
+.tool-call-input {
+  margin: 0;
+  padding: 12px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tool-call-error {
+  color: var(--vscode-errorForeground);
+  font-size: 13px;
+}
+
+.part-reasoning {
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.part-reasoning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--vscode-dropdown-background);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.part-reasoning-header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.reasoning-toggle {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.reasoning-label {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.part-reasoning-body {
+  padding: 12px;
+  border-top: 1px solid var(--vscode-dropdown-border);
+  background: var(--vscode-sideBar-background);
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.part-patch {
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.patch-header {
+  padding: 10px 12px;
+  background: var(--vscode-dropdown-background);
+  border-bottom: 1px solid var(--vscode-dropdown-border);
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.patch-files {
+  display: flex;
+  flex-direction: column;
+}
+
+.patch-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vscode-sideBar-border);
+}
+
+.patch-file:last-child {
+  border-bottom: none;
+}
+
+.patch-path {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  color: var(--vscode-textLink-foreground);
+  cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.patch-path:hover {
+  text-decoration: underline;
+}
+
+.patch-additions {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.patch-deletions {
+  color: var(--vscode-gitDecoration-deletedResourceForeground);
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.diff-view {
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-editorGroup-border);
+  border-radius: 6px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+
+.diff-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--vscode-editorGroupHeader-tabsBackground);
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  border-bottom: 1px solid var(--vscode-editorGroup-border);
+}
+
+.diff-filename {
+  color: var(--vscode-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diff-add-badge {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.diff-del-badge {
+  color: var(--vscode-gitDecoration-deletedResourceForeground);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.diff-line {
+  display: flex;
+  white-space: pre;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+}
+
+.diff-line.add {
+  background: var(--vscode-diffEditor-insertedLineBackground);
+}
+
+.diff-line.remove {
+  background: var(--vscode-diffEditor-removedLineBackground);
+}

@@ -5,6 +5,7 @@ import { MessageList } from "./MessageList"
 import { PromptInput } from "./PromptInput"
 import { SessionDrawer } from "./SessionDrawer"
 import { TodoList } from "./TodoList"
+import "./ChatPanel.css"
 
 type Props = {
   state: AppState

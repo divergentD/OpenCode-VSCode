@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from "react"
 import type { AgentInfo, ProviderInfo } from "../types"
 import { ProviderIcon } from "./ProviderIcon"
+import "./AgentModelSelector.css"
 
 type Props = {
   agents: AgentInfo[]
