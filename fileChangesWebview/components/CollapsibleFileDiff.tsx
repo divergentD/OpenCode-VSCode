@@ -27,6 +27,8 @@ export function CollapsibleFileDiff({
           additions: diff.additions,
           deletions: diff.deletions,
         }}
+        isExpanded={isExpanded}
+        onToggle={onToggle}
         callbacks={{
           onFileOpen: () => onFileOpen(),
           onShowDiff: () => onShowDiff(),

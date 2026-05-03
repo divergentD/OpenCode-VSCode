@@ -1,6 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { FileChangesApp } from "./FileChangesApp"
+import "../packages/ui/src/file-diff/FileDiff.css"
 
 declare function acquireVsCodeApi(): {
   postMessage(msg: unknown): void

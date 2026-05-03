@@ -24,13 +24,22 @@ export function calculateFirstChangeLine(before: string, after: string): number 
 interface FileDiffItemProps {
   diff: FileDiff
   callbacks?: FileDiffCallbacks
+  isExpanded?: boolean
+  onToggle?: () => void
 }
 
 export const FileDiffItem: React.FC<FileDiffItemProps> = ({
   diff,
   callbacks,
+  isExpanded: isExpandedProp,
+  onToggle,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpandedInternal, setIsExpandedInternal] = useState(true)
+  const isControlled = isExpandedProp !== undefined
+  const isExpanded = isControlled ? isExpandedProp : isExpandedInternal
+  const setIsExpanded = isControlled
+    ? onToggle ?? (() => {})
+    : setIsExpandedInternal
 
   const diffHunks = useMemo(
     () => generateDiffHunks(diff.file, diff.before, diff.after),
@@ -54,7 +63,13 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
     <div className="opencode-file-diff-item">
       <div
         className="opencode-file-diff-item__header"
-        onClick={() => setIsExpanded((prev) => !prev)}
+        onClick={() => {
+          if (isControlled) {
+            onToggle?.()
+          } else {
+            setIsExpandedInternal((prev) => !prev)
+          }
+        }}
       >
         <span className="opencode-file-diff-item__toggle">
           {isExpanded ? "▼" : "▶"}
