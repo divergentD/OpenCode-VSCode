@@ -1,12 +1,44 @@
-/* FileDiffViewer */
+:root {
+  --syntax-comment: #6a9955;
+  --syntax-keyword: #569cd6;
+  --syntax-string: #ce9178;
+  --syntax-number: #b5cea8;
+  --syntax-function: #dcdcaa;
+  --syntax-type: #4ec9b0;
+  --syntax-variable: #9cdcfe;
+  --syntax-operator: #d4d4d4;
+  --syntax-punctuation: #d4d4d4;
+  --syntax-property: #9cdcfe;
+  --syntax-tag: #569cd6;
+  --syntax-attr: #9cdcfe;
+  --syntax-builtin: #4ec9b0;
+  --syntax-regex: #d16969;
+}
+
+body.vscode-light {
+  --syntax-comment: #008000;
+  --syntax-keyword: #0000ff;
+  --syntax-string: #a31515;
+  --syntax-number: #098658;
+  --syntax-function: #795e26;
+  --syntax-type: #267f99;
+  --syntax-variable: #001080;
+  --syntax-operator: #000000;
+  --syntax-punctuation: #000000;
+  --syntax-property: #001080;
+  --syntax-tag: #0000ff;
+  --syntax-attr: #001080;
+  --syntax-builtin: #267f99;
+  --syntax-regex: #811f3f;
+}
+
 .opencode-file-diff-viewer {
   background: var(--vscode-editor-background);
-  overflow: hidden;
+  overflow-x: auto;
   font-family: var(--vscode-editor-font-family), "SF Mono", Monaco, monospace;
   font-size: var(--vscode-editor-font-size, 12px);
 }
 
-/* FileDiffItem */
 .opencode-file-diff-item {
   margin: 4px 0;
   border: 1px solid var(--vscode-editorGroup-border);
@@ -30,6 +62,8 @@
   color: var(--vscode-descriptionForeground);
   font-size: 10px;
   user-select: none;
+  display: flex;
+  align-items: center;
 }
 
 .opencode-file-diff-item__name {
@@ -74,9 +108,11 @@
   border: none;
   color: var(--vscode-foreground);
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 4px;
   border-radius: 3px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
 }
 
@@ -84,81 +120,12 @@
   background: var(--vscode-toolbar-hoverBackground);
 }
 
-.opencode-file-diff-item__content {
-  background: var(--vscode-editor-background);
-}
-
-/* react-diff-view theme overrides using VS Code: CSS variables */
-.opencode-file-diff-viewer .diff {
-  color: var(--vscode-editor-foreground);
-  background: var(--vscode-editor-background);
-}
-
-.opencode-file-diff-viewer .diff-gutter {
-  color: var(--vscode-editorLineNumber-foreground);
-  background: var(--vscode-editorGutter-background);
-}
-
-.opencode-file-diff-viewer .diff-line {
-  color: var(--vscode-editor-foreground);
-}
-
-.opencode-file-diff-viewer .diff-line-ctn {
-  color: var(--vscode-editor-foreground);
-}
-
-.opencode-file-diff-viewer .diff-gutter-insert,
-.opencode-file-diff-viewer .diff-code-insert {
-  background: var(--vscode-diffEditor-insertedLineBackground);
-}
-
-.opencode-file-diff-viewer .diff-gutter-delete,
-.opencode-file-diff-viewer .diff-code-delete {
-  background: var(--vscode-diffEditor-removedLineBackground);
-}
-
-.opencode-file-diff-viewer .diff-gutter-omit {
-  background: var(--vscode-editor-background);
-}
-
-.opencode-file-diff-viewer .diff-widget-content {
-  background: var(--vscode-editor-background);
+.opencode-file-diff-item__btn svg {
   color: var(--vscode-foreground);
 }
 
-
-:root {
-  --syntax-comment: #6a9955;
-  --syntax-keyword: #569cd6;
-  --syntax-string: #ce9178;
-  --syntax-number: #b5cea8;
-  --syntax-function: #dcdcaa;
-  --syntax-type: #4ec9b0;
-  --syntax-variable: #9cdcfe;
-  --syntax-operator: #d4d4d4;
-  --syntax-punctuation: #d4d4d4;
-  --syntax-property: #9cdcfe;
-  --syntax-tag: #569cd6;
-  --syntax-attr: #9cdcfe;
-  --syntax-builtin: #4ec9b0;
-  --syntax-regex: #d16969;
-}
-
-body.vscode-light {
-  --syntax-comment: #008000;
-  --syntax-keyword: #0000ff;
-  --syntax-string: #a31515;
-  --syntax-number: #098658;
-  --syntax-function: #795e26;
-  --syntax-type: #267f99;
-  --syntax-variable: #001080;
-  --syntax-operator: #000000;
-  --syntax-punctuation: #000000;
-  --syntax-property: #001080;
-  --syntax-tag: #0000ff;
-  --syntax-attr: #001080;
-  --syntax-builtin: #267f99;
-  --syntax-regex: #811f3f;
+.opencode-file-diff-item__content {
+  background: var(--vscode-editor-background);
 }
 
 .token.comment,

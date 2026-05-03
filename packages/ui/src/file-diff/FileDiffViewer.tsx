@@ -1,64 +1,73 @@
 import React, { useMemo } from "react"
-import { Diff, tokenize } from "react-diff-view"
-import type { DiffHunks } from "./generateDiffHunks"
-import { detectLanguage, refractor } from "./syntaxHighlight"
+import { FileDiff } from "@pierre/diffs/react"
+import type { FileDiffOptions } from "@pierre/diffs/react"
+import { parseDiffFromFile } from "@pierre/diffs"
+import type { FileContents } from "@pierre/diffs"
+import { useVSCodeTheme } from "../theme/VSCodeThemeProvider"
 import "./FileDiff.css"
 
 interface FileDiffViewerProps {
-  diff: DiffHunks
+  before?: string
+  after?: string
   filePath?: string
-  oldSource?: string
+  viewType?: "unified" | "split"
 }
 
 export const FileDiffViewer: React.FC<FileDiffViewerProps> = ({
-  diff,
+  before,
+  after,
   filePath,
-  oldSource,
+  viewType = "unified",
 }) => {
-  const tokens = useMemo(() => {
-    if (!diff.hunks || diff.hunks.length === 0) {
+  const { theme } = useVSCodeTheme()
+
+  const fileDiff = useMemo(() => {
+    if (before === undefined || after === undefined) {
       return null
     }
 
-    const language = filePath ? detectLanguage(filePath) : null
-    if (!language || !refractor.registered(language)) {
-      return null
+    const oldFile: FileContents = {
+      name: filePath || "file",
+      contents: before,
+    }
+
+    const newFile: FileContents = {
+      name: filePath || "file",
+      contents: after,
     }
 
     try {
-      const options: {
-        highlight: true
-        language: string
-        refractor: typeof refractor
-        oldSource?: string
-      } = {
-        highlight: true,
-        language,
-        refractor,
-      }
-
-      if (oldSource) {
-        options.oldSource = oldSource
-      }
-
-      return tokenize(diff.hunks, options)
+      return parseDiffFromFile(oldFile, newFile)
     } catch {
       return null
     }
-  }, [diff.hunks, filePath, oldSource])
+  }, [before, after, filePath])
 
-  if (!diff.hunks || diff.hunks.length === 0) {
-    return <div className="opencode-file-diff-viewer">No changes</div>
+  const themeType = theme === "light" || theme === "highContrastLight" ? "light" : "dark"
+
+  const options: FileDiffOptions = useMemo(
+    () => ({
+      diffStyle: viewType,
+      collapsedContextThreshold: 10,
+      expandUnchanged: false,
+      themeType,
+      overflow: "scroll",
+    }),
+    [viewType, themeType]
+  )
+
+  if (!fileDiff) {
+    return (
+      <div className="opencode-file-diff-viewer">No changes</div>
+    )
   }
 
   return (
     <div className="opencode-file-diff-viewer">
-      <Diff
-        viewType="unified"
-        diffType={diff.type}
-        hunks={diff.hunks}
-        tokens={tokens}
-        widgets={{}}
+      <FileDiff
+        fileDiff={fileDiff}
+        options={options}
+        disableWorkerPool={true}
       />
     </div>
   )

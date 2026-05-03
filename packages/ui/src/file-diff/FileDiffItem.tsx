@@ -1,11 +1,13 @@
-import React, { useMemo, useState } from "react"
+import React, { useState } from "react"
 import type { FileDiff, FileDiffCallbacks } from "./types"
-import {
-  generateDiffHunks,
-  generateDiffHunksFromPatch,
-  extractBeforeAfterFromPatch,
-} from "./generateDiffHunks"
+import { extractBeforeAfterFromPatch } from "./generateDiffHunks"
 import { FileDiffViewer } from "./FileDiffViewer"
+import { ChevronDownIcon } from "../primitives/Icon/icons/ChevronDownIcon"
+import { ChevronRightIcon } from "../primitives/Icon/icons/ChevronRightIcon"
+import { OpenFileIcon } from "../primitives/Icon/icons/OpenFileIcon"
+import { ShowDiffIcon } from "../primitives/Icon/icons/ShowDiffIcon"
+import { SplitViewIcon } from "../primitives/Icon/icons/SplitViewIcon"
+import { UnifiedViewIcon } from "../primitives/Icon/icons/UnifiedViewIcon"
 
 export function calculateFirstChangeLine(before: string, after: string): number {
   const beforeLines = before.split("\n")
@@ -39,39 +41,30 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
   onToggle,
 }) => {
   const [isExpandedInternal, setIsExpandedInternal] = useState(true)
+  const [viewType, setViewType] = useState<"unified" | "split">("unified")
   const isControlled = isExpandedProp !== undefined
   const isExpanded = isControlled ? isExpandedProp : isExpandedInternal
   const setIsExpanded = isControlled
     ? onToggle ?? (() => {})
     : setIsExpandedInternal
 
-  const diffHunks = useMemo(() => {
-    console.log("[FileDiffItem] Rendering diff for:", diff.file, "patch:", !!diff.patch, "before:", !!diff.before, "after:", !!diff.after)
-    if (diff.patch) {
-      console.log("[FileDiffItem] Using patch, length:", diff.patch.length)
-      return generateDiffHunksFromPatch(diff.patch)
-    }
+  const getBeforeAfter = (): { before: string; after: string } => {
     if (diff.before !== undefined && diff.after !== undefined) {
-      return generateDiffHunks(diff.file, diff.before, diff.after)
+      return { before: diff.before, after: diff.after }
     }
-    console.warn("[FileDiffItem] No patch or before/after for:", diff.file)
-    return { type: "modify" as const, hunks: [] }
-  }, [diff])
+    if (diff.patch) {
+      return extractBeforeAfterFromPatch(diff.patch)
+    }
+    return { before: "", after: "" }
+  }
+
+  const { before, after } = getBeforeAfter()
 
   const fileName = diff.file.split("/").pop() || diff.file
 
   const handleOpenFile = (e: React.MouseEvent) => {
     e.stopPropagation()
-    let before = diff.before
-    let after = diff.after
-
-    if ((before === undefined || after === undefined) && diff.patch) {
-      const extracted = extractBeforeAfterFromPatch(diff.patch)
-      before = extracted.before
-      after = extracted.after
-    }
-
-    if (before !== undefined && after !== undefined) {
+    if (before && after) {
       const line = calculateFirstChangeLine(before, after)
       callbacks?.onFileOpen?.(diff.file, line)
     } else {
@@ -81,18 +74,14 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
 
   const handleShowDiff = (e: React.MouseEvent) => {
     e.stopPropagation()
-    let before = diff.before
-    let after = diff.after
-
-    if ((before === undefined || after === undefined) && diff.patch) {
-      const extracted = extractBeforeAfterFromPatch(diff.patch)
-      before = extracted.before
-      after = extracted.after
-    }
-
-    if (before !== undefined && after !== undefined) {
+    if (before && after) {
       callbacks?.onShowDiff?.(diff.file, before, after, diff.patch)
     }
+  }
+
+  const toggleViewType = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setViewType((prev) => (prev === "unified" ? "split" : "unified"))
   }
 
   return (
@@ -108,7 +97,11 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
         }}
       >
         <span className="opencode-file-diff-item__toggle">
-          {isExpanded ? "▼" : "▶"}
+          {isExpanded ? (
+            <ChevronDownIcon size={12} />
+          ) : (
+            <ChevronRightIcon size={12} />
+          )}
         </span>
         <span className="opencode-file-diff-item__name" title={diff.file}>
           {fileName}
@@ -134,23 +127,39 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
             onClick={handleOpenFile}
             title="Open file"
           >
-            📄
+            <OpenFileIcon size={14} />
           </button>
           <button
             className="opencode-file-diff-item__btn"
             onClick={handleShowDiff}
             title="Show diff in VS Code:"
           >
-            🔍
+            <ShowDiffIcon size={14} />
+          </button>
+          <button
+            className="opencode-file-diff-item__btn"
+            onClick={toggleViewType}
+            title={
+              viewType === "unified"
+                ? "Switch to split view"
+                : "Switch to unified view"
+            }
+          >
+            {viewType === "unified" ? (
+              <SplitViewIcon size={14} />
+            ) : (
+              <UnifiedViewIcon size={14} />
+            )}
           </button>
         </div>
       </div>
       {isExpanded && (
         <div className="opencode-file-diff-item__content">
-          <FileDiffViewer 
-            diff={diffHunks} 
-            filePath={diff.file} 
-            oldSource={diff.before} 
+          <FileDiffViewer
+            before={before}
+            after={after}
+            filePath={diff.file}
+            viewType={viewType}
           />
         </div>
       )}
