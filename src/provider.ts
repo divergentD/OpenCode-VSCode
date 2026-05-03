@@ -1,16 +1,18 @@
 import * as vscode from "vscode"
-import * as crypto from "crypto"
 import { ServerManager, MessageDispatcher, SessionManager, ContextManager } from "./managers"
+import { WebviewProvider, ServerEventHandler, MessageHandler } from "./providers"
 import type { HostMessage, WebviewMessage, FileDiff } from "./types"
 import { DiffContentProvider } from "./diffProvider"
 import type { FileChangesPanelProvider } from "./FileChangesPanelProvider"
 
 export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposable {
-  private view?: vscode.WebviewView
+  private webviewProvider: WebviewProvider
   private serverManager: ServerManager
+  private serverEventHandler: ServerEventHandler
+  private messageHandler: MessageHandler
+  private contextManager: ContextManager
   private messageDispatcher?: MessageDispatcher
   private sessionManager?: SessionManager
-  private contextManager: ContextManager
   private directory?: string
 
   constructor(
@@ -19,9 +21,21 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
     private fileChangesProvider?: FileChangesPanelProvider
   ) {
     this.contextManager = new ContextManager()
+    this.webviewProvider = new WebviewProvider(ctx)
     const folders = vscode.workspace.workspaceFolders
     this.directory = folders?.[0]?.uri.fsPath
     this.serverManager = new ServerManager(this.directory)
+
+    this.serverEventHandler = new ServerEventHandler({
+      post: (msg) => this.post(msg),
+      onServerReady: (url) => this.onServerReady(url),
+      onEvent: (event) => this.handleEvent(event),
+    })
+    this.serverEventHandler.attach(this.serverManager)
+
+    this.messageHandler = new MessageHandler({
+      onSessionSelect: (sessionID) => this.handleSessionSelect(sessionID),
+    })
 
     ctx.subscriptions.push(this.contextManager)
 
@@ -30,49 +44,10 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
         this.postThemeChange(theme)
       })
     )
-
-    this.serverManager.onEvent((event) => {
-      this.handleServerEvent(event)
-    })
-  }
-
-  private handleServerEvent(event: { type: string; url?: string; message?: string; sessions?: unknown[]; commands?: unknown[]; config?: { model?: string; default_agent?: string }; providers?: unknown[]; default?: Record<string, string>; connected?: string[]; agents?: unknown[]; event?: unknown }): void {
-    console.log("[ChatProvider] Server event:", event.type)
-
-    switch (event.type) {
-      case "server.ready":
-        this.onServerReady(event.url!)
-        break
-      case "server.error":
-        this.post({ type: "server.error", message: event.message! })
-        break
-      case "sessions.list":
-        this.post({ type: "sessions.list", sessions: event.sessions! })
-        break
-      case "commands.list":
-        this.post({ type: "commands.list", commands: event.commands! })
-        break
-      case "config.get":
-        this.post({ type: "config.get", config: event.config! })
-        break
-      case "providers.list":
-        this.post({ type: "providers.list", providers: event.providers!, default: event.default, connected: event.connected })
-        break
-      case "agents.list":
-        this.post({ type: "agents.list", agents: event.agents! })
-        break
-      case "event":
-        this.handleEvent(event.event!)
-        break
-    }
   }
 
   private handleEvent(event: unknown): void {
-    console.log("[ChatProvider] Event:", JSON.stringify(event, null, 2))
-
-    const payload = (event as any)
-    this.post({ type: "event", event: payload })
-
+    const payload = event as any
     if (payload.type === "session.diff" && payload.properties && this.sessionManager) {
       const { sessionID, diff } = payload.properties as { sessionID: string; diff: FileDiff[] }
       this.sessionManager.updateDiffs(sessionID, diff)
@@ -81,8 +56,6 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
 
   private onServerReady(url: string): void {
     console.log("[ChatProvider] Server ready at:", url)
-    this.post({ type: "server.ready", url })
-
     const client = this.serverManager.getClient()
     const directory = this.serverManager.getDirectory()
 
@@ -97,6 +70,7 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
         this.contextManager,
         this.fileChangesProvider
       )
+      this.messageHandler.setMessageDispatcher(this.messageDispatcher)
     }
   }
 
@@ -108,52 +82,24 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
     return this.sessionManager?.getActiveSessionDiffs() || []
   }
 
+  private handleSessionSelect(sessionID: string): void {
+    this.sessionManager?.setActiveSessionID(sessionID)
+  }
+
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
-    this.view = view
-    view.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [this.ctx.extensionUri],
-    }
-    view.webview.html = this.getHtml(view.webview)
-    view.webview.onDidReceiveMessage((msg: WebviewMessage) => this.handleMessage(msg))
+    this.webviewProvider.resolveWebviewView(view)
+    this.webviewProvider.setOnDidReceiveMessage((msg: WebviewMessage) => this.handleMessage(msg))
 
     await this.serverManager.connect()
-
     this.postThemeChange(vscode.window.activeColorTheme)
   }
 
   private async handleMessage(msg: WebviewMessage): Promise<void> {
-    if (msg.type === "session.select" && this.sessionManager) {
-      const sessionID = (msg as any).sessionID
-      this.sessionManager.setActiveSessionID(sessionID)
-    }
-
-    await this.messageDispatcher?.handleMessage(msg)
+    await this.messageHandler.handleMessage(msg)
   }
 
   private post(msg: HostMessage): void {
-    this.view?.webview.postMessage(msg)
-  }
-
-  private getHtml(webview: vscode.Webview): string {
-    const nonce = crypto.randomBytes(16).toString("hex")
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "webview.js"))
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "webview.css"))
-    const cspSource = webview.cspSource
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} data:; connect-src ${cspSource} https://models.dev;">
-  <link rel="stylesheet" href="${styleUri}">
-<title>opencode Chat</title>
-</head>
-<body>
-<div id="root"></div>
-<script nonce="${nonce}" src="${scriptUri}"></script>
-</body>
-</html>`
+    this.webviewProvider.post(msg)
   }
 
   async newSession(): Promise<void> {
