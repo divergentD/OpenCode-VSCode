@@ -1,0 +1,127 @@
+/* FileDiffViewer */
+.opencode-file-diff-viewer {
+  background: var(--vscode-editor-background);
+  overflow: hidden;
+  font-family: var(--vscode-editor-font-family), "SF Mono", Monaco, monospace;
+  font-size: var(--vscode-editor-font-size, 12px);
+}
+
+/* FileDiffItem */
+.opencode-file-diff-item {
+  margin: 4px 0;
+  border: 1px solid var(--vscode-editorGroup-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.opencode-file-diff-item__header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--vscode-editorGroupHeader-tabsBackground);
+  border-bottom: 1px solid var(--vscode-editorGroup-border);
+  cursor: pointer;
+  font-family: var(--vscode-editor-font-family), "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.opencode-file-diff-item__toggle {
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  user-select: none;
+}
+
+.opencode-file-diff-item__name {
+  color: var(--vscode-foreground);
+  font-weight: 600;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.opencode-file-diff-item__path {
+  color: var(--vscode-descriptionForeground);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  user-select: none;
+}
+
+.opencode-file-diff-item__stats {
+  display: flex;
+  gap: 8px;
+}
+
+.opencode-file-diff-item__add {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+  font-weight: 600;
+}
+
+.opencode-file-diff-item__del {
+  color: var(--vscode-gitDecoration-deletedResourceForeground);
+  font-weight: 600;
+}
+
+.opencode-file-diff-item__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.opencode-file-diff-item__btn {
+  background: transparent;
+  border: none;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.opencode-file-diff-item__btn:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+}
+
+.opencode-file-diff-item__content {
+  background: var(--vscode-editor-background);
+}
+
+/* react-diff-view theme overrides using VS Code: CSS variables */
+.opencode-file-diff-viewer .diff {
+  color: var(--vscode-editor-foreground);
+  background: var(--vscode-editor-background);
+}
+
+.opencode-file-diff-viewer .diff-gutter {
+  color: var(--vscode-editorLineNumber-foreground);
+  background: var(--vscode-editorGutter-background);
+}
+
+.opencode-file-diff-viewer .diff-line {
+  color: var(--vscode-editor-foreground);
+}
+
+.opencode-file-diff-viewer .diff-line-ctn {
+  color: var(--vscode-editor-foreground);
+}
+
+.opencode-file-diff-viewer .diff-gutter-insert,
+.opencode-file-diff-viewer .diff-code-insert {
+  background: var(--vscode-diffEditor-insertedLineBackground);
+}
+
+.opencode-file-diff-viewer .diff-gutter-delete,
+.opencode-file-diff-viewer .diff-code-delete {
+  background: var(--vscode-diffEditor-removedLineBackground);
+}
+
+.opencode-file-diff-viewer .diff-gutter-omit {
+  background: var(--vscode-editor-background);
+}
+
+.opencode-file-diff-viewer .diff-widget-content {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+}

@@ -1,8 +1,17 @@
 const esbuild = require("esbuild")
+const path = require("path")
 
 const production = process.argv.includes("--production")
 const watch = process.argv.includes("--watch")
 const target = process.argv.find((arg) => arg.startsWith("--target="))?.split("=")[1]
+
+// Prevent React multi-instance issues by forcing all imports to use root node_modules
+const reactAlias = {
+  react: path.resolve(__dirname, "node_modules/react"),
+  "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+  "react/jsx-runtime": path.resolve(__dirname, "node_modules/react/jsx-runtime"),
+  "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
+}
 
 /**
  * Build configuration for Extension Host (Node.js)
@@ -49,6 +58,7 @@ async function buildWebview() {
     minify: production,
     sourcemap: !production,
     sourcesContent: false,
+    alias: reactAlias,
     outfile: "dist/webview.js",
     logLevel: watch ? "silent" : "info",
   })
@@ -79,6 +89,7 @@ async function buildFileChangesWebview() {
     minify: production,
     sourcemap: !production,
     sourcesContent: false,
+    alias: reactAlias,
     outfile: "dist/fileChangesWebview.js",
     logLevel: watch ? "silent" : "info",
   })
