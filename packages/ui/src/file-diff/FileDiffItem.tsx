@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react"
 import type { FileDiff, FileDiffCallbacks } from "./types"
-import { generateUnifiedDiff } from "./generateUnifiedDiff"
+import { generateDiffHunks } from "./generateDiffHunks"
 import { FileDiffViewer } from "./FileDiffViewer"
 
 export function calculateFirstChangeLine(before: string, after: string): number {
@@ -32,8 +32,8 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
 
-  const diffText = useMemo(
-    () => generateUnifiedDiff(diff.file, diff.before, diff.after),
+  const diffHunks = useMemo(
+    () => generateDiffHunks(diff.file, diff.before, diff.after),
     [diff],
   )
 
@@ -96,7 +96,7 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
       </div>
       {isExpanded && (
         <div className="opencode-file-diff-item__content">
-          <FileDiffViewer diffText={diffText} />
+          <FileDiffViewer diff={diffHunks} />
         </div>
       )}
     </div>
