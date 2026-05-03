@@ -12,6 +12,8 @@ vi.mock("vscode", () => ({
   window: {
     showTextDocument: vi.fn(),
     showErrorMessage: vi.fn(),
+    onDidChangeActiveColorTheme: vi.fn(() => ({ dispose: vi.fn() })),
+    activeColorTheme: { kind: 2 },
   },
   Uri: {
     file: vi.fn((path: string) => ({ fsPath: path, scheme: "file", path })),

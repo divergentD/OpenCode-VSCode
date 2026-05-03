@@ -1,6 +1,7 @@
 import type { ActionRegistry } from "./types"
 import { handleInit } from "./init"
 import { handleUpdate } from "./update"
+import { handleThemeChange } from "./theme-change"
 import { handleFileToggle } from "./file-toggle"
 import { handleFileExpand } from "./file-expand"
 import { handleFileCollapse } from "./file-collapse"
@@ -13,6 +14,7 @@ export * from "./types"
 export const actionRegistry: ActionRegistry = {
   init: handleInit as ActionRegistry[string],
   update: handleUpdate as ActionRegistry[string],
+  "theme.changed": handleThemeChange as ActionRegistry[string],
   "file.toggle": handleFileToggle as ActionRegistry[string],
   "file.expand": handleFileExpand as ActionRegistry[string],
   "file.collapse": handleFileCollapse as ActionRegistry[string],

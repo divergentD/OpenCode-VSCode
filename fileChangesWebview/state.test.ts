@@ -14,6 +14,7 @@ describe("reducer", () => {
         sessionID: "old-session",
         diffs: [{ file: "old.ts", before: "", after: "", additions: 0, deletions: 0 }],
         expandedFiles: new Set(["some-file.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "init", sessionID: "new-session", diffs: mockDiffs }
 
@@ -22,6 +23,7 @@ describe("reducer", () => {
       expect(result.sessionID).toBe("new-session")
       expect(result.diffs).toEqual(mockDiffs)
       expect(result.expandedFiles.size).toBe(0)
+      expect(result.theme).toBe("dark")
     })
 
     it("should handle init with empty diffs", () => {
@@ -32,6 +34,7 @@ describe("reducer", () => {
       expect(result.sessionID).toBe("session-1")
       expect(result.diffs).toEqual([])
       expect(result.expandedFiles.size).toBe(0)
+      expect(result.theme).toBe("dark")
     })
   })
 
@@ -41,6 +44,7 @@ describe("reducer", () => {
         sessionID: "old-session",
         diffs: [],
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "update", sessionID: "updated-session", diffs: mockDiffs }
 
@@ -49,6 +53,7 @@ describe("reducer", () => {
       expect(result.sessionID).toBe("updated-session")
       expect(result.diffs).toEqual(mockDiffs)
       expect(result.expandedFiles).toEqual(new Set(["src/foo.ts"]))
+      expect(result.theme).toBe("dark")
     })
 
     it("should update diffs without clearing expanded files", () => {
@@ -56,6 +61,7 @@ describe("reducer", () => {
         sessionID: "session-1",
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts"]),
+        theme: "dark",
       }
       const newDiffs: FileDiff[] = [
         { file: "src/baz.ts", before: "old", after: "new", additions: 3, deletions: 0 },
@@ -67,6 +73,7 @@ describe("reducer", () => {
       expect(result.sessionID).toBe("session-2")
       expect(result.diffs).toEqual(newDiffs)
       expect(result.expandedFiles).toEqual(new Set(["src/foo.ts", "src/bar.ts"]))
+      expect(result.theme).toBe("dark")
     })
   })
 
@@ -76,6 +83,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(),
+        theme: "dark",
       }
       const action: Action = { type: "file.toggle", file: "src/foo.ts" }
 
@@ -90,6 +98,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "file.toggle", file: "src/foo.ts" }
 
@@ -106,6 +115,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: originalExpanded,
+        theme: "dark",
       }
       const action: Action = { type: "file.toggle", file: "src/bar.ts" }
 
@@ -122,6 +132,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "file.expand", file: "src/bar.ts" }
 
@@ -137,6 +148,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "file.expand", file: "src/foo.ts" }
 
@@ -152,6 +164,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "file.collapse", file: "src/foo.ts" }
 
@@ -167,6 +180,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "file.collapse", file: "src/nonexistent.ts" }
 
@@ -182,6 +196,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(),
+        theme: "dark",
       }
       const action: Action = { type: "expand.all" }
 
@@ -197,6 +212,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(["src/extra.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "expand.all" }
 
@@ -213,6 +229,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "expand.all" }
 
@@ -228,6 +245,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "collapse.all" }
 
@@ -241,6 +259,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(),
+        theme: "dark",
       }
       const action: Action = { type: "collapse.all" }
 
@@ -256,6 +275,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "toggle.all" }
 
@@ -269,6 +289,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "toggle.all" }
 
@@ -284,6 +305,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(),
+        theme: "dark",
       }
       const action: Action = { type: "toggle.all" }
 
@@ -299,6 +321,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts", "src/bar.ts", "src/extra.ts"]),
+        theme: "dark",
       }
       const action: Action = { type: "toggle.all" }
 
@@ -316,6 +339,7 @@ describe("reducer", () => {
         sessionID: null,
         diffs: [],
         expandedFiles: new Set(),
+        theme: "dark",
       }
       const action: Action = { type: "toggle.all" }
 
@@ -331,6 +355,7 @@ describe("reducer", () => {
         sessionID: "session-1",
         diffs: mockDiffs,
         expandedFiles: new Set(["src/foo.ts"]),
+        theme: "dark",
       }
       const action = { type: "unknown.action" } as unknown as Action
 
@@ -346,6 +371,7 @@ describe("reducer", () => {
       expect(initialState.diffs).toEqual([])
       expect(initialState.expandedFiles).toBeInstanceOf(Set)
       expect(initialState.expandedFiles.size).toBe(0)
+      expect(initialState.theme).toBe("dark")
     })
   })
 })

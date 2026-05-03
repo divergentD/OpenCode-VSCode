@@ -7,9 +7,12 @@ export type FileDiff = {
   deletions: number
 }
 
+export type ThemeKind = "light" | "dark" | "highContrast" | "highContrastLight"
+
 export type HostMessage =
   | { type: "init"; sessionID: string; diffs: FileDiff[] }
   | { type: "update"; sessionID: string; diffs: FileDiff[] }
+  | { type: "theme.changed"; theme: { kind: ThemeKind } }
 
 export type WebviewMessage =
   | { type: "file.open"; path: string; line?: number }
