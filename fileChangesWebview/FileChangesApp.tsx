@@ -26,6 +26,9 @@ export function FileChangesApp({ vscode }: Props) {
         case "update":
           dispatch({ type: "update", sessionID: msg.sessionID, diffs: msg.diffs })
           break
+        case "theme.changed":
+          dispatch({ type: "theme.changed", theme: msg.theme })
+          break
       }
     }
 
@@ -34,6 +37,10 @@ export function FileChangesApp({ vscode }: Props) {
 
     return () => window.removeEventListener("message", handleMessage)
   }, [vscode])
+
+  useEffect(() => {
+    document.body.setAttribute("data-theme", state.theme)
+  }, [state.theme])
 
   const post = useCallback(
     (msg: unknown) => vscode.postMessage(msg),
