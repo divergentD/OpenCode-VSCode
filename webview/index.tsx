@@ -13,6 +13,7 @@ import "./components/MentionMenu.css"
 import "./components/CommandMenu.css"
 import "./components/AgentModelSelector.css"
 import "./styles/markdown.css"
+import "../packages/ui/src/file-diff/FileDiff.css"
 
 const el = document.getElementById("root")!
 createRoot(el).render(
