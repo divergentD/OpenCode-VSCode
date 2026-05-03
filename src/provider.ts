@@ -1,47 +1,111 @@
 import * as vscode from "vscode"
-import * as path from "path"
 import * as crypto from "crypto"
-import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk"
-import { connect, type ServerHandle } from "./server"
-import { MentionResolver } from "./mentions"
+import { ServerManager, MessageDispatcher, SessionManager, ContextManager } from "./managers"
 import type { HostMessage, WebviewMessage, FileDiff } from "./types"
 import { DiffContentProvider } from "./diffProvider"
 import type { FileChangesPanelProvider } from "./FileChangesPanelProvider"
-import { commandRegistry } from "./commands"
 
-export class ChatProvider implements vscode.WebviewViewProvider {
+export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposable {
   private view?: vscode.WebviewView
-  private client?: OpencodeClient
-  private serverHandle?: ServerHandle
-  private mentions: MentionResolver
-  private eventAbort = new AbortController()
+  private serverManager: ServerManager
+  private messageDispatcher?: MessageDispatcher
+  private sessionManager?: SessionManager
+  private contextManager: ContextManager
   private directory?: string
-  private activeSessionID?: string
-  private activeSessionDiffs: FileDiff[] = []
 
   constructor(
     private ctx: vscode.ExtensionContext,
     private diffProvider: DiffContentProvider,
     private fileChangesProvider?: FileChangesPanelProvider
   ) {
-    this.mentions = new MentionResolver()
+    this.contextManager = new ContextManager()
     const folders = vscode.workspace.workspaceFolders
     this.directory = folders?.[0]?.uri.fsPath
-    ctx.subscriptions.push(this.mentions)
-    
+    this.serverManager = new ServerManager(this.directory)
+
+    ctx.subscriptions.push(this.contextManager)
+
     ctx.subscriptions.push(
       vscode.window.onDidChangeActiveColorTheme((theme) => {
         this.postThemeChange(theme)
       })
     )
+
+    this.serverManager.onEvent((event) => {
+      this.handleServerEvent(event)
+    })
+  }
+
+  private handleServerEvent(event: { type: string; url?: string; message?: string; sessions?: unknown[]; commands?: unknown[]; config?: { model?: string; default_agent?: string }; providers?: unknown[]; default?: Record<string, string>; connected?: string[]; agents?: unknown[]; event?: unknown }): void {
+    console.log("[ChatProvider] Server event:", event.type)
+
+    switch (event.type) {
+      case "server.ready":
+        this.onServerReady(event.url!)
+        break
+      case "server.error":
+        this.post({ type: "server.error", message: event.message! })
+        break
+      case "sessions.list":
+        this.post({ type: "sessions.list", sessions: event.sessions! })
+        break
+      case "commands.list":
+        this.post({ type: "commands.list", commands: event.commands! })
+        break
+      case "config.get":
+        this.post({ type: "config.get", config: event.config! })
+        break
+      case "providers.list":
+        this.post({ type: "providers.list", providers: event.providers!, default: event.default, connected: event.connected })
+        break
+      case "agents.list":
+        this.post({ type: "agents.list", agents: event.agents! })
+        break
+      case "event":
+        this.handleEvent(event.event!)
+        break
+    }
+  }
+
+  private handleEvent(event: unknown): void {
+    console.log("[ChatProvider] Event:", JSON.stringify(event, null, 2))
+
+    const payload = (event as any)
+    this.post({ type: "event", event: payload })
+
+    if (payload.type === "session.diff" && payload.properties && this.sessionManager) {
+      const { sessionID, diff } = payload.properties as { sessionID: string; diff: FileDiff[] }
+      this.sessionManager.updateDiffs(sessionID, diff)
+    }
+  }
+
+  private onServerReady(url: string): void {
+    console.log("[ChatProvider] Server ready at:", url)
+    this.post({ type: "server.ready", url })
+
+    const client = this.serverManager.getClient()
+    const directory = this.serverManager.getDirectory()
+
+    if (client && directory) {
+      this.sessionManager = new SessionManager(client, directory, this.fileChangesProvider)
+      this.messageDispatcher = new MessageDispatcher(
+        client,
+        directory,
+        (msg) => this.post(msg),
+        this.diffProvider,
+        this.sessionManager,
+        this.contextManager,
+        this.fileChangesProvider
+      )
+    }
   }
 
   public getActiveSessionID(): string | undefined {
-    return this.activeSessionID
+    return this.sessionManager?.getActiveSessionID()
   }
 
   public getActiveSessionDiffs(): FileDiff[] {
-    return this.activeSessionDiffs
+    return this.sessionManager?.getActiveSessionDiffs() || []
   }
 
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
@@ -53,160 +117,18 @@ export class ChatProvider implements vscode.WebviewViewProvider {
     view.webview.html = this.getHtml(view.webview)
     view.webview.onDidReceiveMessage((msg: WebviewMessage) => this.handleMessage(msg))
 
-    await this.initServer()
-    
+    await this.serverManager.connect()
+
     this.postThemeChange(vscode.window.activeColorTheme)
   }
 
-  private async initServer(): Promise<void> {
-    if (!this.directory) {
-      this.post({ type: "workspace.missing" })
-      return
-    }
-    try {
-      await vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification, title: "Connecting to opencode..." },
-        async () => {
-          this.serverHandle = await connect(this.eventAbort.signal)
-          this.client = createOpencodeClient({
-            baseUrl: this.serverHandle.url,
-            directory: this.directory,
-          })
-          this.startEventLoop()
-          this.post({ type: "server.ready", url: this.serverHandle.url })
-
-          // Load and send available commands
-          try {
-            const cmdResult = await this.client.command.list({ query: { directory: this.directory } })
-            console.log('[provider] Auto-loading commands:', cmdResult.data?.length || 0)
-            if (cmdResult.data) {
-              this.post({ type: "commands.list", commands: cmdResult.data })
-            }
-          } catch (cmdErr) {
-            console.error('[provider] Failed to load commands:', cmdErr)
-          }
-
-          // Load user config for default model and agent
-          try {
-            const configResult = await this.client.config.get({ query: { directory: this.directory } })
-            console.log('[provider] User config:', configResult.data)
-            if (configResult.data) {
-              this.post({ 
-                type: "config.get", 
-                config: {
-                  model: configResult.data.model,
-                  default_agent: (configResult.data as { default_agent?: string }).default_agent
-                }
-              })
-            }
-          } catch (configErr) {
-            console.error('[provider] Failed to load config:', configErr)
-          }
-
-          const sessionResult = await this.client.session.list({ query: { directory: this.directory } })
-          if (sessionResult.data) {
-            this.post({ type: "sessions.list", sessions: sessionResult.data })
-          }
-
-          // Load and send available providers
-          try {
-            const providerResult = await this.client.provider.list({ query: { directory: this.directory } })
-            console.log('[provider] Auto-loading providers:', (providerResult.data as { all?: unknown[] })?.all?.length || 0)
-            if (providerResult.data) {
-              const providers = (providerResult.data as { all?: unknown[] }).all || []
-              const defaults = (providerResult.data as { default?: Record<string, string> }).default
-              const connected = (providerResult.data as { connected?: string[] }).connected || []
-              this.post({ type: "providers.list", providers, default: defaults, connected })
-            }
-          } catch (providerErr) {
-            console.error('[provider] Failed to load providers:', providerErr)
-          }
-
-          // Load and send available agents
-          try {
-            const agentResult = await this.client.app.agents({ query: { directory: this.directory } })
-            console.log('[provider] Auto-loading agents:', agentResult.data?.length || 0)
-            if (agentResult.data) {
-              this.post({ type: "agents.list", agents: agentResult.data })
-            }
-          } catch (agentErr) {
-            console.error('[provider] Failed to load agents:', agentErr)
-          }
-
-        },
-      )
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      this.post({ type: "server.error", message: msg })
-    }
-  }
-
-  private async startEventLoop(): Promise<void> {
-    if (!this.client) return
-    console.log("[opencode] Starting event loop...")
-    try {
-      const result = await this.client.global.event()
-      console.log("[opencode] Event stream connected")
-      for await (const event of result.stream) {
-        if (this.eventAbort.signal.aborted) {
-          console.log("[opencode] Event loop aborted")
-          break
-        }
-        // DEBUG: Log full event structure
-        console.log("[opencode] Raw event:", JSON.stringify(event, null, 2))
-        
-        // Check if it's GlobalEvent { directory, payload } or direct Event { type, properties }
-        const payload = (event as any).payload ?? event
-        console.log("[opencode] Using payload:", JSON.stringify(payload, null, 2))
-        
-        // Transform message events to include parts in the message object
-        if (payload.type === "message.updated" && payload.properties?.info) {
-          // Only add parts if they exist in the event, otherwise preserve existing parts in webview
-          if (payload.properties.parts && payload.properties.parts.length > 0) {
-            payload.properties.info = {
-              ...payload.properties.info,
-              parts: payload.properties.parts
-            }
-          }
-        }
-        if (payload.type === "message.part.updated" && payload.properties?.part) {
-          // Part is already in the right format
-        }
-
-        // Handle session.diff events to update the file changes panel
-        if (payload.type === "session.diff" && payload.properties) {
-          const { sessionID, diff } = payload.properties as { sessionID: string; diff: FileDiff[] }
-          if (sessionID === this.activeSessionID) {
-            this.activeSessionDiffs = diff
-            this.fileChangesProvider?.updateDiffs(sessionID, diff)
-          }
-        }
-
-        this.post({ type: "event", event: payload })
-      }
-      console.log("[opencode] Event stream ended, restarting...")
-      if (!this.eventAbort.signal.aborted) {
-        setTimeout(() => this.startEventLoop(), 2000)
-      }
-    } catch (err) {
-      console.error("[opencode] Event loop error:", err)
-      if (!this.eventAbort.signal.aborted) {
-        setTimeout(() => this.startEventLoop(), 2000)
-      }
-    }
-  }
-
   private async handleMessage(msg: WebviewMessage): Promise<void> {
-    console.log("[provider] handleMessage called:", msg.type, "client:", !!this.client, "directory:", !!this.directory)
-    if (!this.client || !this.directory) {
-      console.log("[provider] Early return - client or directory not ready")
-      return
+    if (msg.type === "session.select" && this.sessionManager) {
+      const sessionID = (msg as any).sessionID
+      this.sessionManager.setActiveSessionID(sessionID)
     }
 
-    const command = commandRegistry.get(msg.type)
-    if (command) {
-      await command.execute(this, msg)
-    }
+    await this.messageDispatcher?.handleMessage(msg)
   }
 
   private post(msg: HostMessage): void {
@@ -235,14 +157,19 @@ export class ChatProvider implements vscode.WebviewViewProvider {
   }
 
   async newSession(): Promise<void> {
-    if (!this.client || !this.directory) return
-    const result = await this.client.session.create({ query: { directory: this.directory } })
-    if (result.data) this.post({ type: "session.created", session: result.data })
+    const client = this.serverManager.getClient()
+    const directory = this.serverManager.getDirectory()
+    if (!client || !directory) return
+
+    const result = await client.session.create({ query: { directory } })
+    if (result.data) {
+      this.post({ type: "session.created", session: result.data })
+    }
     vscode.commands.executeCommand("opencode.chat.focus")
   }
 
   attachSelection(): void {
-    const sel = this.mentions.resolveSelection()
+    const sel = this.contextManager.resolveSelection()
     if (sel) {
       this.post({ type: "context.resolved", kind: "selection", payload: sel })
       vscode.commands.executeCommand("opencode.chat.focus")
@@ -271,10 +198,7 @@ export class ChatProvider implements vscode.WebviewViewProvider {
   }
 
   dispose(): void {
-    this.eventAbort.abort()
-    if (this.serverHandle?.spawned) {
-      this.serverHandle.dispose()
-    }
-    this.mentions.dispose()
+    this.serverManager.dispose()
+    this.contextManager.dispose()
   }
 }
