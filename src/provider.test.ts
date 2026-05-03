@@ -8,6 +8,7 @@ vi.mock("vscode", () => ({
   window: {
     showErrorMessage: vi.fn(),
     showTextDocument: vi.fn(),
+    onDidChangeActiveColorTheme: vi.fn(() => ({ dispose: vi.fn() })),
   },
   workspace: {
     openTextDocument: vi.fn(),
