@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { FileDiffItem, calculateFirstChangeLine } from "../../packages/ui/src/file-diff"
 import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, FileDiff as FileDiffType } from "../types"
 import type { WebviewMessage } from "../types"
+import { renderMarkdown } from "../utils/markdown"
 import "./MessageBubble.css"
 
 type Props = {
@@ -88,34 +89,10 @@ function Part({ part, delta, fileChanges, post }: { part: PartData; delta?: stri
   }
 }
 
-function renderMarkdown(text: string): string {
-  if (!text) return ""
-  let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(
-      /```([a-zA-Z]*)\n([\s\S]*?)```/g,
-      (_, lang, code) => `<pre><code class="lang-${lang || "text"}">${code.trimEnd()}</code></pre>`,
-    )
-    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/^[*-] (.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>")
-    .split(/\n\n+/)
-    .map((para) => (para.startsWith("<") ? para : `<p>${para.replace(/\n/g, "<br>")}</p>`))
-    .join("\n")
-  return html
-}
-
 function TextPart({ part, delta }: { part: TextPartData; delta?: string }) {
   const text = delta ?? part.text ?? ""
   if (!text) return null
-  return <div className="part-text" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
+  return <div className="part-text markdown-body" dangerouslySetInnerHTML={{ __html: renderMarkdown(text) }} />
 }
 
 function ToolCallPart({ part }: { part: ToolPartData }) {
