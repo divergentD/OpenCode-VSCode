@@ -172,14 +172,17 @@ function FileDiffView({ diff, filePath, post }: {
     <FileDiffItem 
       diff={{
         file: filePath,
-        before: diff.before,
-        after: diff.after,
+        ...(diff.before !== undefined && { before: diff.before }),
+        ...(diff.after !== undefined && { after: diff.after }),
+        ...(diff.patch !== undefined && { patch: diff.patch }),
         additions: diff.additions,
         deletions: diff.deletions
       }}
       callbacks={{
         onFileOpen: (path, line) => post({ type: "file.open", path, line }),
-        onShowDiff: (path, before, after) => post({ type: "file.diff", path, before, after })
+        onShowDiff: (path, before, after, patch) => {
+          post({ type: "file.diff", path, before, after, patch })
+        }
       }}
     />
   )
@@ -196,7 +199,7 @@ function PatchPart({ part, fileChanges, post }: { part: PatchPartData; fileChang
   const handleOpenFile = (filePath: string, diff?: FileDiffType) => {
     console.log('[PatchPart] Opening file:', filePath)
     let line = 0
-    if (diff) {
+    if (diff && diff.before !== undefined && diff.after !== undefined) {
       line = calculateFirstChangeLine(diff.before, diff.after)
       console.log('[PatchPart] First change at line:', line)
     }

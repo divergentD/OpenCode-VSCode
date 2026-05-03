@@ -1,7 +1,8 @@
 export type FileDiff = {
   file: string
-  before: string
-  after: string
+  before?: string
+  after?: string
+  patch?: string
   additions: number
   deletions: number
 }
@@ -12,4 +13,4 @@ export type HostMessage =
 
 export type WebviewMessage =
   | { type: "file.open"; path: string; line?: number }
-  | { type: "file.diff"; path: string; before: string; after: string }
+  | { type: "file.diff"; path: string; before?: string; after?: string; patch?: string }

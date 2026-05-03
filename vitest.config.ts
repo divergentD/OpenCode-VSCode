@@ -7,7 +7,8 @@ export default defineConfig({
     include: [
       "src/**/*.test.ts",
       "webview/**/*.test.ts",
-      "fileChangesWebview/**/*.test.ts"
+      "fileChangesWebview/**/*.test.ts",
+      "packages/ui/**/*.test.ts"
     ],
     coverage: {
       reporter: ["text", "html"],

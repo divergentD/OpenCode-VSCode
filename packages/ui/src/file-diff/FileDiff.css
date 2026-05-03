@@ -125,3 +125,94 @@
   background: var(--vscode-editor-background);
   color: var(--vscode-foreground);
 }
+
+
+:root {
+  --syntax-comment: #6a9955;
+  --syntax-keyword: #569cd6;
+  --syntax-string: #ce9178;
+  --syntax-number: #b5cea8;
+  --syntax-function: #dcdcaa;
+  --syntax-type: #4ec9b0;
+  --syntax-variable: #9cdcfe;
+  --syntax-operator: #d4d4d4;
+  --syntax-punctuation: #d4d4d4;
+  --syntax-property: #9cdcfe;
+  --syntax-tag: #569cd6;
+  --syntax-attr: #9cdcfe;
+  --syntax-builtin: #4ec9b0;
+  --syntax-regex: #d16969;
+}
+
+body.vscode-light {
+  --syntax-comment: #008000;
+  --syntax-keyword: #0000ff;
+  --syntax-string: #a31515;
+  --syntax-number: #098658;
+  --syntax-function: #795e26;
+  --syntax-type: #267f99;
+  --syntax-variable: #001080;
+  --syntax-operator: #000000;
+  --syntax-punctuation: #000000;
+  --syntax-property: #001080;
+  --syntax-tag: #0000ff;
+  --syntax-attr: #001080;
+  --syntax-builtin: #267f99;
+  --syntax-regex: #811f3f;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--syntax-comment);
+}
+
+.token.keyword,
+.token.operator,
+.token.builtin {
+  color: var(--syntax-keyword);
+}
+
+.token.string,
+.token.char,
+.token.attr-value {
+  color: var(--syntax-string);
+}
+
+.token.number {
+  color: var(--syntax-number);
+}
+
+.token.function,
+.token.class-name {
+  color: var(--syntax-function);
+}
+
+.token.type,
+.token.tag {
+  color: var(--syntax-type);
+}
+
+.token.variable,
+.token.property,
+.token.attr-name {
+  color: var(--syntax-variable);
+}
+
+.token.punctuation {
+  color: var(--syntax-punctuation);
+}
+
+.token.regex,
+.token.important {
+  color: var(--syntax-regex);
+}
+
+.token.deleted {
+  color: var(--vscode-gitDecoration-deletedResourceForeground);
+}
+
+.token.inserted {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+}

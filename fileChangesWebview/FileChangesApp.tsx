@@ -48,8 +48,8 @@ export function FileChangesApp({ vscode }: Props) {
   )
 
   const handleShowDiff = useCallback(
-    (path: string, before: string, after: string) => {
-      post({ type: "file.diff", path, before, after })
+    (path: string, before: string, after: string, patch?: string) => {
+      post({ type: "file.diff", path, before, after, patch })
     },
     [post]
   )

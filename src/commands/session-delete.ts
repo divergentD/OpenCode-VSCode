@@ -1,16 +1,16 @@
-import type { ChatProvider } from "../provider"
+import type { MessageDispatcher } from "../managers/MessageDispatcher"
 import type { WebviewMessage } from "../types"
 import type { Command } from "./types"
 
 export class SessionDeleteCommand implements Command {
   readonly type = "session.delete"
 
-  async execute(provider: ChatProvider, msg: WebviewMessage & { sessionID: string }): Promise<void> {
-    const client = provider["client"]
-    const directory = provider["directory"]
+  async execute(dispatcher: MessageDispatcher, msg: WebviewMessage & { sessionID: string }): Promise<void> {
+    const client = dispatcher.getClient()
+    const directory = dispatcher.getDirectory()
     if (!client || !directory) return
 
     await client.session.delete({ path: { id: msg.sessionID }, query: { directory } })
-    provider["post"]({ type: "session.deleted", sessionID: msg.sessionID })
+    dispatcher.postMessage({ type: "session.deleted", sessionID: msg.sessionID })
   }
 }

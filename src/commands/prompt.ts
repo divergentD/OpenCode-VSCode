@@ -1,13 +1,13 @@
-import type { ChatProvider } from "../provider"
+import type { MessageDispatcher } from "../managers/MessageDispatcher"
 import type { WebviewMessage } from "../types"
 import type { Command } from "./types"
 
 export class PromptCommand implements Command {
   readonly type = "prompt"
 
-  async execute(provider: ChatProvider, msg: WebviewMessage & { sessionID: string; parts: Array<{ type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }> }): Promise<void> {
-    const client = provider["client"]
-    const directory = provider["directory"]
+  async execute(dispatcher: MessageDispatcher, msg: WebviewMessage & { sessionID: string; parts: Array<{ type: "text"; text: string } | { type: "file"; mime: string; url: string; filename?: string }> }): Promise<void> {
+    const client = dispatcher.getClient()
+    const directory = dispatcher.getDirectory()
     if (!client || !directory) return
 
     console.log("[opencode] Sending prompt:", msg.sessionID, "parts:", msg.parts.length)
