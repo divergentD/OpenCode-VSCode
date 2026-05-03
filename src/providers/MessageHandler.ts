@@ -3,18 +3,12 @@ import type { MessageDispatcher } from "../managers"
 
 export interface MessageHandlerDependencies {
   messageDispatcher?: MessageDispatcher
-  onSessionSelect?: (sessionID: string) => void
 }
 
 export class MessageHandler {
   constructor(private dependencies: MessageHandlerDependencies) {}
 
   public async handleMessage(msg: WebviewMessage): Promise<void> {
-    if (msg.type === "session.select") {
-      const sessionID = (msg as any).sessionID
-      this.dependencies.onSessionSelect?.(sessionID)
-    }
-
     await this.dependencies.messageDispatcher?.handleMessage(msg)
   }
 

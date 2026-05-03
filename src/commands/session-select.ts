@@ -44,27 +44,19 @@ export class SessionSelectCommand implements Command {
       })
       console.log("[opencode] Diff result:", diffResult)
 
-      const sessionManager = dispatcher.getSessionManager()
-      if (sessionManager) {
-        sessionManager.setActiveSessionID(msg.sessionID)
-        if (diffResult.data && diffResult.data.length > 0) {
-          console.log("[opencode] Sending session.diff with", diffResult.data.length, "diffs")
-          sessionManager.setActiveSessionDiffs(diffResult.data)
-          dispatcher.postMessage({ type: "session.diff", sessionID: msg.sessionID, diffs: diffResult.data })
-          fileChangesProvider?.show(msg.sessionID, diffResult.data)
-          vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar")
-          vscode.commands.executeCommand("opencode.fileChanges.focus")
-        } else {
-          console.warn("[opencode] No diff data returned")
-          sessionManager.setActiveSessionDiffs([])
-          dispatcher.postMessage({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
-          fileChangesProvider?.show(msg.sessionID, [])
-        }
+      if (diffResult.data && diffResult.data.length > 0) {
+        console.log("[opencode] Sending session.diff with", diffResult.data.length, "diffs")
+        dispatcher.postMessage({ type: "session.diff", sessionID: msg.sessionID, diffs: diffResult.data })
+        fileChangesProvider?.show(msg.sessionID, diffResult.data)
+        vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar")
+        vscode.commands.executeCommand("opencode.fileChanges.focus")
+      } else {
+        console.warn("[opencode] No diff data returned")
+        dispatcher.postMessage({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
+        fileChangesProvider?.show(msg.sessionID, [])
       }
     } catch (diffErr) {
       console.error("[opencode] Failed to fetch diff:", diffErr)
-      const sessionManager = dispatcher.getSessionManager()
-      sessionManager?.setActiveSessionDiffs([])
       dispatcher.postMessage({ type: "session.diff", sessionID: msg.sessionID, diffs: [] })
     }
   }

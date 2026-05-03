@@ -60,8 +60,4 @@ export class MessageDispatcher {
   public getFileChangesProvider(): FileChangesPanelProvider | undefined {
     return this.fileChangesProvider
   }
-
-  public getActiveSessionID(): string | undefined {
-    return this.sessionManager?.getActiveSessionID()
-  }
 }
