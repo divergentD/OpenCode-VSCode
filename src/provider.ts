@@ -33,9 +33,7 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
     })
     this.serverEventHandler.attach(this.serverManager)
 
-    this.messageHandler = new MessageHandler({
-      onSessionSelect: (sessionID) => this.handleSessionSelect(sessionID),
-    })
+    this.messageHandler = new MessageHandler({})
 
     ctx.subscriptions.push(this.contextManager)
 
@@ -72,18 +70,6 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
       )
       this.messageHandler.setMessageDispatcher(this.messageDispatcher)
     }
-  }
-
-  public getActiveSessionID(): string | undefined {
-    return this.sessionManager?.getActiveSessionID()
-  }
-
-  public getActiveSessionDiffs(): FileDiff[] {
-    return this.sessionManager?.getActiveSessionDiffs() || []
-  }
-
-  private handleSessionSelect(sessionID: string): void {
-    this.sessionManager?.setActiveSessionID(sessionID)
   }
 
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
