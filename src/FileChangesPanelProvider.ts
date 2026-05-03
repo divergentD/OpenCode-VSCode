@@ -13,8 +13,15 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView
   private currentSessionID?: string
   private currentDiffs: FileDiff[] = []
+  private disposables: vscode.Disposable[] = []
 
-  constructor(private ctx: vscode.ExtensionContext, private diffProvider: DiffContentProvider) {}
+  constructor(private ctx: vscode.ExtensionContext, private diffProvider: DiffContentProvider) {
+    this.disposables.push(
+      vscode.window.onDidChangeActiveColorTheme((theme) => {
+        this.postThemeChange(theme)
+      })
+    )
+  }
 
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     this.view = view
@@ -37,6 +44,8 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
         diffs: this.currentDiffs,
       })
     }
+
+    this.postThemeChange(vscode.window.activeColorTheme)
   }
 
   public show(sessionID: string, diffs: FileDiff[]): void {
@@ -476,7 +485,29 @@ body {
 </html>`
   }
 
+  private postThemeChange(theme: vscode.ColorTheme): void {
+    let kind: "light" | "dark" | "highContrast" | "highContrastLight"
+    switch (theme.kind) {
+      case vscode.ColorThemeKind.Light:
+        kind = "light"
+        break
+      case vscode.ColorThemeKind.Dark:
+        kind = "dark"
+        break
+      case vscode.ColorThemeKind.HighContrast:
+        kind = "highContrast"
+        break
+      case vscode.ColorThemeKind.HighContrastLight:
+        kind = "highContrastLight"
+        break
+      default:
+        kind = "dark"
+    }
+    this.view?.webview.postMessage({ type: "theme.changed", theme: { kind } })
+  }
+
   public dispose(): void {
-    // No-op for WebviewViewProvider
+    this.disposables.forEach((d) => d.dispose())
+    this.disposables = []
   }
 }
