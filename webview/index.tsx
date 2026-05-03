@@ -12,6 +12,7 @@ import "./components/PromptInput.css"
 import "./components/MentionMenu.css"
 import "./components/CommandMenu.css"
 import "./components/AgentModelSelector.css"
+import "./styles/markdown.css"
 
 const el = document.getElementById("root")!
 createRoot(el).render(
