@@ -150,17 +150,8 @@ function ToolCallPart({ part }: { part: ToolPartData }) {
 }
 
 function ReasoningPart({ part }: { part: ReasoningPartData }) {
-  const [open, setOpen] = useState(false)
   if (!part.text) return null
-  return (
-    <div className="part-reasoning">
-      <div className="part-reasoning-header" onClick={() => setOpen((v) => !v)}>
-        <span className="reasoning-toggle">{open ? "▲" : "▼"}</span>
-        <span className="reasoning-label">Reasoning</span>
-      </div>
-      {open && <div className="part-reasoning-body">{part.text}</div>}
-    </div>
-  )
+  return <div className="part-reasoning">{part.text}</div>
 }
 
 function FileDiffView({ diff, filePath, post }: {
