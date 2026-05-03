@@ -1,6 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 import { App } from "./App"
+import { VSCodeThemeProvider } from "../packages/ui/src/theme/VSCodeThemeProvider"
 import "./styles/index.css"
 import "./components/ChatPanel.css"
 import "./components/SessionDrawer.css"
@@ -13,4 +14,8 @@ import "./components/CommandMenu.css"
 import "./components/AgentModelSelector.css"
 
 const el = document.getElementById("root")!
-createRoot(el).render(<App />)
+createRoot(el).render(
+  <VSCodeThemeProvider>
+    <App />
+  </VSCodeThemeProvider>
+)

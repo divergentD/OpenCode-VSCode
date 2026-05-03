@@ -81,6 +81,9 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "fileChangesWebview.js")
     )
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.ctx.extensionUri, "dist", "fileChangesWebview.css")
+    )
     const cspSource = webview.cspSource
 
     return `<!DOCTYPE html>
@@ -90,6 +93,7 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src ${cspSource} data:;">
 <title>File Changes</title>
+<link rel="stylesheet" href="${styleUri}">
 <style>
 :root {
   --bg-primary: #0d1117;

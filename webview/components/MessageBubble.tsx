@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react"
-import { FileDiff } from "@pierre/diffs/react"
-import { parseDiffFromFile } from "@pierre/diffs"
-import type { FileDiffMetadata } from "@pierre/diffs"
+import React, { useState, useEffect } from "react"
+import { FileDiffItem, calculateFirstChangeLine } from "../../packages/ui/src/file-diff"
 import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, FileDiff as FileDiffType } from "../types"
 import type { WebviewMessage } from "../types"
 import "./MessageBubble.css"
@@ -165,85 +163,25 @@ function ReasoningPart({ part }: { part: ReasoningPartData }) {
   )
 }
 
-function calculateFirstChangeLine(before: string, after: string): number {
-  const beforeLines = before.split('\n')
-  const afterLines = after.split('\n')
-
-  const minLength = Math.min(beforeLines.length, afterLines.length)
-  for (let i = 0; i < minLength; i++) {
-    if (beforeLines[i] !== afterLines[i]) {
-      return i
-    }
-  }
-
-  if (beforeLines.length !== afterLines.length) {
-    return minLength
-  }
-
-  return 0
-}
-
-function FileDiffView({ diff, filePath, onOpenFile, onShowDiff }: {
+function FileDiffView({ diff, filePath, post }: {
   diff: FileDiffType
   filePath: string
-  onOpenFile: () => void
-  onShowDiff: () => void
+  post: (msg: WebviewMessage) => void
 }) {
-  const fileName = filePath.split('/').pop() || filePath
-  
-  const fileDiffMetadata = useMemo<FileDiffMetadata>(() => {
-    return parseDiffFromFile(
-      {
-        name: fileName,
-        contents: diff.before,
-      },
-      {
-        name: fileName,
-        contents: diff.after,
-      }
-    )
-  }, [diff.before, diff.after, fileName])
-
   return (
-    <div className="file-diff-view">
-      <div className="file-diff-header">
-        <div className="file-diff-title">
-          <span className="file-diff-name">{fileName}</span>
-          <span className="file-diff-stats">
-            {diff.additions > 0 && <span className="file-diff-add">+{diff.additions}</span>}
-            {diff.deletions > 0 && <span className="file-diff-del">-{diff.deletions}</span>}
-          </span>
-        </div>
-        <div className="file-diff-actions">
-          <button
-            className="file-diff-btn"
-            onClick={onOpenFile}
-            title="打开文件并跳转到第一处变更"
-          >
-            📄
-          </button>
-          <button
-            className="file-diff-btn"
-            onClick={onShowDiff}
-            title="在 VS Code 中显示差异"
-          >
-            🔍
-          </button>
-        </div>
-      </div>
-      <div className="file-diff-content pierre-diff-container">
-        <FileDiff
-          fileDiff={fileDiffMetadata}
-          options={{
-            diffStyle: 'unified',
-            theme: 'pierre-dark',
-            disableLineNumbers: false,
-            expandUnchanged: false,
-            expansionLineCount: 5,
-          }}
-        />
-      </div>
-    </div>
+    <FileDiffItem 
+      diff={{
+        file: filePath,
+        before: diff.before,
+        after: diff.after,
+        additions: diff.additions,
+        deletions: diff.deletions
+      }}
+      callbacks={{
+        onFileOpen: (path, line) => post({ type: "file.open", path, line }),
+        onShowDiff: (path, before, after) => post({ type: "file.diff", path, before, after })
+      }}
+    />
   )
 }
 
@@ -263,13 +201,6 @@ function PatchPart({ part, fileChanges, post }: { part: PatchPartData; fileChang
       console.log('[PatchPart] First change at line:', line)
     }
     post({ type: "file.open", path: filePath, line })
-  }
-
-  const handleShowDiff = (filePath: string, diff?: FileDiffType) => {
-    console.log('[PatchPart] Showing diff for:', filePath)
-    if (diff) {
-      post({ type: "file.diff", path: filePath, before: diff.before, after: diff.after })
-    }
   }
 
   const getFileDiff = (filePath: string): FileDiffType | undefined => {
@@ -319,8 +250,7 @@ function PatchPart({ part, fileChanges, post }: { part: PatchPartData; fileChang
               key={i}
               diff={diff}
               filePath={filePath}
-              onOpenFile={() => handleOpenFile(filePath, diff)}
-              onShowDiff={() => handleShowDiff(filePath, diff)}
+              post={post}
             />
           )
         })}
