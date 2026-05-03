@@ -33,8 +33,9 @@ export type HostMessage =
 
 export type FileDiff = {
   file: string
-  before: string
-  after: string
+  before?: string
+  after?: string
+  patch?: string
   additions: number
   deletions: number
 }
@@ -62,4 +63,4 @@ export type WebviewMessage =
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
   | { type: "file.open"; path: string; line?: number; column?: number }
-  | { type: "file.diff"; path: string; before: string; after: string }
+  | { type: "file.diff"; path: string; before?: string; after?: string; patch?: string }

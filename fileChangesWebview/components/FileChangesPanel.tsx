@@ -8,7 +8,7 @@ type Props = {
   expandedFiles: Set<string>
   onFileToggle: (file: string) => void
   onFileOpen: (path: string, line?: number) => void
-  onShowDiff: (path: string, before: string, after: string) => void
+  onShowDiff: (path: string, before: string, after: string, patch?: string) => void
   onToggleAll: () => void
 }
 
@@ -70,7 +70,7 @@ export function FileChangesPanel({
             isExpanded={expandedFiles.has(diff.file)}
             onToggle={() => onFileToggle(diff.file)}
             onFileOpen={() => onFileOpen(diff.file, 0)}
-            onShowDiff={() => onShowDiff(diff.file, diff.before, diff.after)}
+            onShowDiff={(path, before, after, patch) => onShowDiff(path, before, after, patch)}
           />
         ))}
       </div>

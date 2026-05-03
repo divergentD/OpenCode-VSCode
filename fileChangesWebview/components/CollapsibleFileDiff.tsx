@@ -6,8 +6,8 @@ type Props = {
   diff: FileDiff
   isExpanded: boolean
   onToggle: () => void
-  onFileOpen: () => void
-  onShowDiff: () => void
+  onFileOpen: (path: string, line?: number) => void
+  onShowDiff: (path: string, before: string, after: string, patch?: string) => void
 }
 
 export function CollapsibleFileDiff({
@@ -22,16 +22,17 @@ export function CollapsibleFileDiff({
       <FileDiffItem
         diff={{
           file: diff.file,
-          before: diff.before,
-          after: diff.after,
+          ...(diff.before !== undefined && { before: diff.before }),
+          ...(diff.after !== undefined && { after: diff.after }),
+          ...(diff.patch !== undefined && { patch: diff.patch }),
           additions: diff.additions,
           deletions: diff.deletions,
         }}
         isExpanded={isExpanded}
         onToggle={onToggle}
         callbacks={{
-          onFileOpen: () => onFileOpen(),
-          onShowDiff: () => onShowDiff(),
+          onFileOpen: (path, line) => onFileOpen(path, line),
+          onShowDiff: (path, before, after, patch) => onShowDiff(path, before, after, patch),
         }}
       />
     </div>

@@ -40,7 +40,7 @@ export type WebviewMessage =
   | { type: "commands.list.request" }
   | { type: "agents.list.request" }
   | { type: "file.open"; path: string; line?: number; column?: number }
-  | { type: "file.diff"; path: string; before: string; after: string }
+  | { type: "file.diff"; path: string; before?: string; after?: string; patch?: string }
   | { type: "todo.create"; sessionID: string; title: string; description?: string; priority?: "low" | "medium" | "high" }
   | { type: "todo.update"; todoID: string; updates: Partial<Omit<TodoItem, "id" | "sessionID" | "createdAt">> }
   | { type: "todo.delete"; todoID: string }
@@ -203,8 +203,9 @@ export type ProblemContext = {
 // File change tracking types
 export type FileDiff = {
   file: string
-  before: string
-  after: string
+  before?: string
+  after?: string
+  patch?: string
   additions: number
   deletions: number
 }

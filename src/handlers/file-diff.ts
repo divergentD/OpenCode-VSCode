@@ -1,12 +1,24 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import type { FileChangesPanelProvider } from "../FileChangesPanelProvider"
+import { extractBeforeAfterFromPatch } from "../patch"
 
 export function handleFileDiff(
   provider: FileChangesPanelProvider,
-  msg: { type: string; path?: string; before?: string; after?: string }
+  msg: { type: string; path?: string; before?: string; after?: string; patch?: string }
 ): void {
-  if (!msg.path || msg.before === undefined || msg.after === undefined) return
+  if (!msg.path) return
+
+  let before = msg.before
+  let after = msg.after
+
+  if ((before === undefined || after === undefined) && msg.patch) {
+    const extracted = extractBeforeAfterFromPatch(msg.patch)
+    before = extracted.before
+    after = extracted.after
+  }
+
+  if (before === undefined || after === undefined) return
 
   console.log("[FileChangesPanelProvider] Showing diff for:", msg.path)
 

@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from "react"
 import type { FileDiff, FileDiffCallbacks } from "./types"
-import { generateDiffHunks } from "./generateDiffHunks"
+import {
+  generateDiffHunks,
+  generateDiffHunksFromPatch,
+  extractBeforeAfterFromPatch,
+} from "./generateDiffHunks"
 import { FileDiffViewer } from "./FileDiffViewer"
 
 export function calculateFirstChangeLine(before: string, after: string): number {
@@ -41,22 +45,54 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
     ? onToggle ?? (() => {})
     : setIsExpandedInternal
 
-  const diffHunks = useMemo(
-    () => generateDiffHunks(diff.file, diff.before, diff.after),
-    [diff],
-  )
+  const diffHunks = useMemo(() => {
+    console.log("[FileDiffItem] Rendering diff for:", diff.file, "patch:", !!diff.patch, "before:", !!diff.before, "after:", !!diff.after)
+    if (diff.patch) {
+      console.log("[FileDiffItem] Using patch, length:", diff.patch.length)
+      return generateDiffHunksFromPatch(diff.patch)
+    }
+    if (diff.before !== undefined && diff.after !== undefined) {
+      return generateDiffHunks(diff.file, diff.before, diff.after)
+    }
+    console.warn("[FileDiffItem] No patch or before/after for:", diff.file)
+    return { type: "modify" as const, hunks: [] }
+  }, [diff])
 
   const fileName = diff.file.split("/").pop() || diff.file
 
   const handleOpenFile = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const line = calculateFirstChangeLine(diff.before, diff.after)
-    callbacks?.onFileOpen?.(diff.file, line)
+    let before = diff.before
+    let after = diff.after
+
+    if ((before === undefined || after === undefined) && diff.patch) {
+      const extracted = extractBeforeAfterFromPatch(diff.patch)
+      before = extracted.before
+      after = extracted.after
+    }
+
+    if (before !== undefined && after !== undefined) {
+      const line = calculateFirstChangeLine(before, after)
+      callbacks?.onFileOpen?.(diff.file, line)
+    } else {
+      callbacks?.onFileOpen?.(diff.file)
+    }
   }
 
   const handleShowDiff = (e: React.MouseEvent) => {
     e.stopPropagation()
-    callbacks?.onShowDiff?.(diff.file, diff.before, diff.after)
+    let before = diff.before
+    let after = diff.after
+
+    if ((before === undefined || after === undefined) && diff.patch) {
+      const extracted = extractBeforeAfterFromPatch(diff.patch)
+      before = extracted.before
+      after = extracted.after
+    }
+
+    if (before !== undefined && after !== undefined) {
+      callbacks?.onShowDiff?.(diff.file, before, after, diff.patch)
+    }
   }
 
   return (
@@ -111,7 +147,11 @@ export const FileDiffItem: React.FC<FileDiffItemProps> = ({
       </div>
       {isExpanded && (
         <div className="opencode-file-diff-item__content">
-          <FileDiffViewer diff={diffHunks} />
+          <FileDiffViewer 
+            diff={diffHunks} 
+            filePath={diff.file} 
+            oldSource={diff.before} 
+          />
         </div>
       )}
     </div>
