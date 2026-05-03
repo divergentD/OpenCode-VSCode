@@ -105,21 +105,21 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
 <link rel="stylesheet" href="${styleUri}">
 <style>
 :root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #21262d;
-  --bg-hover: #30363d;
-  --border-color: #30363d;
-  --border-light: #21262d;
-  --text-primary: #e6edf3;
-  --text-secondary: #7d8590;
-  --text-muted: #484f58;
-  --accent-blue: #58a6ff;
-  --accent-green: #3fb950;
-  --accent-red: #f85149;
-  --accent-purple: #a371f7;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --bg-primary: var(--vscode-sideBar-background);
+  --bg-secondary: var(--vscode-editor-background);
+  --bg-tertiary: var(--vscode-input-background);
+  --bg-hover: var(--vscode-list-hoverBackground);
+  --border-color: var(--vscode-sideBar-border, var(--vscode-panel-border));
+  --border-light: var(--vscode-panel-border);
+  --text-primary: var(--vscode-foreground);
+  --text-secondary: var(--vscode-descriptionForeground);
+  --text-muted: var(--vscode-disabledForeground);
+  --accent-blue: var(--vscode-textLink-foreground);
+  --accent-green: var(--vscode-gitDecoration-addedResourceForeground);
+  --accent-red: var(--vscode-gitDecoration-deletedResourceForeground);
+  --accent-purple: var(--vscode-symbolIcon-colorForeground, var(--vscode-textLink-foreground));
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -218,7 +218,7 @@ body {
   display: flex;
   align-items: center;
   padding: 14px 16px;
-  background: rgba(22, 27, 34, 0.95);
+  background: color-mix(in srgb, var(--bg-secondary) 95%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
@@ -265,7 +265,7 @@ body {
 
 .stat-additions {
   color: var(--accent-green);
-  background: rgba(63, 185, 80, 0.15);
+  background: color-mix(in srgb, var(--accent-green) 15%, transparent);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
@@ -274,7 +274,7 @@ body {
 
 .stat-deletions {
   color: var(--accent-red);
-  background: rgba(248, 81, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-red) 15%, transparent);
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 600;
@@ -364,7 +364,7 @@ body {
 }
 
 .file-diff-header:hover {
-  background: rgba(48, 54, 61, 0.4);
+  background: color-mix(in srgb, var(--bg-hover) 40%, transparent);
 }
 
 .file-diff-toggle {
@@ -412,7 +412,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   padding: 2px 6px;
-  background: rgba(63, 185, 80, 0.12);
+  background: color-mix(in srgb, var(--accent-green) 12%, transparent);
   border-radius: 4px;
 }
 
@@ -422,7 +422,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   padding: 2px 6px;
-  background: rgba(248, 81, 73, 0.12);
+  background: color-mix(in srgb, var(--accent-red) 12%, transparent);
   border-radius: 4px;
 }
 
