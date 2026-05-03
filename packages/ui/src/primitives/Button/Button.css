@@ -1,0 +1,100 @@
+/* Button Base */
+.opencode-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    opacity 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.opencode-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sizes */
+.opencode-button--sm {
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.opencode-button--md {
+  padding: 4px 12px;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.opencode-button--lg {
+  padding: 6px 16px;
+  font-size: 14px;
+  line-height: 26px;
+}
+
+/* Icon size override */
+.opencode-button--icon {
+  padding: 4px;
+}
+
+.opencode-button--icon.opencode-button--sm {
+  padding: 2px;
+}
+
+.opencode-button--icon.opencode-button--lg {
+  padding: 6px;
+}
+
+/* Primary */
+.opencode-button--primary {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-color: var(--vscode-button-background);
+}
+
+.opencode-button--primary:hover:not(:disabled) {
+  background-color: var(--vscode-button-hoverBackground);
+  border-color: var(--vscode-button-hoverBackground);
+}
+
+/* Secondary */
+.opencode-button--secondary {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border-color: var(--vscode-button-secondaryBackground);
+}
+
+.opencode-button--secondary:hover:not(:disabled) {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+  border-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Ghost */
+.opencode-button--ghost {
+  background-color: transparent;
+  color: var(--vscode-foreground);
+  border-color: transparent;
+}
+
+.opencode-button--ghost:hover:not(:disabled) {
+  background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+/* Icon */
+.opencode-button--icon {
+  background-color: transparent;
+  color: var(--vscode-foreground);
+  border-color: transparent;
+  aspect-ratio: 1;
+}
+
+.opencode-button--icon:hover:not(:disabled) {
+  background-color: var(--vscode-toolbar-hoverBackground);
+}
