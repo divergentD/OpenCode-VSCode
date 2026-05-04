@@ -274,3 +274,81 @@
 .diff-line.remove {
   background: var(--vscode-diffEditor-removedLineBackground);
 }
+
+.subtask-card {
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 4px 0;
+  max-width: 100%;
+  transition: all 0.2s ease;
+}
+
+.subtask-card:hover {
+  background: var(--vscode-list-hoverBackground);
+  border-color: var(--vscode-focusBorder);
+}
+
+.subtask-card.agent {
+  border-left: 3px solid var(--vscode-textLink-foreground);
+}
+
+.subtask-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtask-status {
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.subtask-status.pending {
+  color: var(--vscode-descriptionForeground);
+}
+
+.subtask-status.running {
+  color: var(--vscode-progressBar-background);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.subtask-status.completed {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.subtask-status.error {
+  color: var(--vscode-errorForeground);
+}
+
+.subtask-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--vscode-foreground);
+}
+
+.subtask-agent {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.subtask-description {
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

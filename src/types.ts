@@ -45,6 +45,7 @@ export type WebviewMessage =
   | { type: "ready" }
   | { type: "sessions.list.request" }
   | { type: "session.create" }
+  | { type: "session.createChild"; parentID: string }
   | { type: "session.select"; sessionID: string }
   | { type: "session.delete"; sessionID: string }
   | { type: "session.abort"; sessionID: string }

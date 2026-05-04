@@ -21,11 +21,28 @@ export function ChatPanel({ state, dispatch, post }: Props) {
   const messages = state.activeSessionID ? (state.messages[state.activeSessionID] ?? []) : []
 
   const activeSession = state.sessions.find((s) => s.id === state.activeSessionID)
+  const isSubSession = !!activeSession?.parentID
 
   const handleAbort = () => {
     if (state.activeSessionID) {
       post({ type: "session.abort", sessionID: state.activeSessionID })
     }
+  }
+
+  const handleCreateChild = () => {
+    if (state.activeSessionID) {
+      post({ type: "session.createChild", parentID: state.activeSessionID })
+    }
+  }
+
+  const handleReturnToParent = () => {
+    if (activeSession?.parentID) {
+      post({ type: "session.select", sessionID: activeSession.parentID })
+    }
+  }
+
+  const handleBreadcrumbClick = (sessionID: string) => {
+    post({ type: "session.select", sessionID })
   }
 
   return (
@@ -34,9 +51,44 @@ export function ChatPanel({ state, dispatch, post }: Props) {
       <div className="top-bar">
         <div className="top-bar-left">
           <div className="logo-icon">O</div>
-          <span className="brand-name">opencode</span>
+          {state.sessionBreadcrumb.length > 1 ? (
+            <div className="breadcrumb-trail">
+              {state.sessionBreadcrumb.map((session, index) => (
+                <React.Fragment key={session.id}>
+                  {index > 0 && <span className="breadcrumb-separator">›</span>}
+                  <button
+                    className={`breadcrumb-item ${session.id === state.activeSessionID ? "active" : ""}`}
+                    onClick={() => handleBreadcrumbClick(session.id)}
+                    title={session.title}
+                  >
+                    {session.title || "Untitled"}
+                  </button>
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            <span className="brand-name">opencode</span>
+          )}
         </div>
         <div className="top-bar-right">
+          {isSubSession && (
+            <button 
+              className="btn-return-parent" 
+              onClick={handleReturnToParent}
+              title="Back to parent session"
+            >
+              ← Back
+            </button>
+          )}
+          {!isSubSession && activeSession && (
+            <button 
+              className="btn-create-child" 
+              onClick={handleCreateChild}
+              title="Create sub-session"
+            >
+              Fork
+            </button>
+          )}
           <button className="btn-dropdown" onClick={() => setShowSessions(!showSessions)}>
             History
             <span>▼</span>
@@ -76,6 +128,7 @@ export function ChatPanel({ state, dispatch, post }: Props) {
         hasSession={!!state.activeSessionID}
         fileChanges={state.activeSessionID ? (state.fileChanges[state.activeSessionID] ?? []) : []}
         post={post}
+        agents={state.agents}
       />
 
       <TodoList

@@ -26,6 +26,7 @@ export type WebviewMessage =
   | { type: "ready" }
   | { type: "sessions.list.request" }
   | { type: "session.create" }
+  | { type: "session.createChild"; parentID: string }
   | { type: "session.select"; sessionID: string }
   | { type: "session.delete"; sessionID: string }
   | { type: "session.abort"; sessionID: string }
@@ -54,6 +55,7 @@ export type SessionInfo = {
   title: string
   directory: string
   time: { created: number; updated: number }
+  parentID?: string
   [key: string]: unknown
 }
 
@@ -99,6 +101,22 @@ export type StepFinishPartData = PartBase & {
   usage?: { tokens?: { input?: number; output?: number } }
 }
 
+export type SubtaskPartData = PartBase & {
+  type: "subtask"
+  title?: string
+  description?: string
+  sessionID?: string
+  status?: "pending" | "running" | "completed" | "error"
+}
+
+export type AgentPartData = PartBase & {
+  type: "agent"
+  title?: string
+  description?: string
+  sessionID?: string
+  status?: "pending" | "running" | "completed" | "error"
+}
+
 export type PartData =
   | TextPartData
   | ToolPartData
@@ -106,6 +124,8 @@ export type PartData =
   | PatchPartData
   | StepStartPartData
   | StepFinishPartData
+  | SubtaskPartData
+  | AgentPartData
   | (PartBase & { type: string })
 
 export type MessageInfo = {
@@ -179,6 +199,7 @@ export type AgentInfo = {
   description?: string
   mode: "subagent" | "primary" | "all"
   builtIn: boolean
+  color?: string
   model?: {
     modelID: string
     providerID: string

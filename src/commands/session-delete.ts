@@ -10,6 +10,22 @@ export class SessionDeleteCommand implements Command {
     const directory = dispatcher.getDirectory()
     if (!client || !directory) return
 
+    try {
+      const sessionsResult = await client.session.list({ query: { directory } })
+      if (sessionsResult.data && Array.isArray(sessionsResult.data)) {
+        const children = sessionsResult.data.filter((s: any) => s.parentID === msg.sessionID)
+        for (const child of children) {
+          await client.session.delete({ 
+            path: { id: child.id }, 
+            query: { directory } 
+          })
+          dispatcher.postMessage({ type: "session.deleted", sessionID: child.id })
+        }
+      }
+    } catch (err) {
+      console.warn("[opencode] Failed to fetch children for cascade delete:", err)
+    }
+
     await client.session.delete({ path: { id: msg.sessionID }, query: { directory } })
     dispatcher.postMessage({ type: "session.deleted", sessionID: msg.sessionID })
   }

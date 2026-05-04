@@ -15,6 +15,7 @@ import { CommandsListRequestCommand } from "./commands-list-request"
 import { AgentsListRequestCommand } from "./agents-list-request"
 import { FileOpenCommand } from "./file-open"
 import { FileDiffCommand } from "./file-diff"
+import { SessionCreateChildCommand } from "./session-create-child"
 
 export class CommandRegistry {
   private commands = new Map<string, Command>()
@@ -36,6 +37,7 @@ export class CommandRegistry {
     this.register(new AgentsListRequestCommand())
     this.register(new FileOpenCommand())
     this.register(new FileDiffCommand())
+    this.register(new SessionCreateChildCommand())
   }
 
   register(command: Command): void {

@@ -1,7 +1,12 @@
 import type { ActionRegistry } from "./types"
 import { handleServerReady, handleServerError } from "./server"
 import { handleWorkspaceMissing } from "./workspace"
-import { handleSessionsList, handleSessionCreated, handleSessionDeleted } from "./sessions"
+import {
+  handleSessionsList,
+  handleSessionCreated,
+  handleSessionDeleted,
+  handleBreadcrumbUpdate,
+} from "./sessions"
 import { handleMessagesList } from "./messages"
 import { handleContextResolved } from "./context"
 import { handleCommandsList } from "./commands"
@@ -27,6 +32,7 @@ export const actionHandlers: ActionRegistry = {
   "agent.select": handleAgentSelect as ActionRegistry[string],
   "model.select": handleModelSelect as ActionRegistry[string],
   "session.diff": handleSessionDiff as ActionRegistry[string],
+  "session.breadcrumb.update": handleBreadcrumbUpdate as ActionRegistry[string],
 }
 
 export * from "./types"

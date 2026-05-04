@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react"
-import type { MessageInfo, PermissionRequest, QuestionRequest, SessionStatus, FileDiff } from "../types"
+import type { MessageInfo, PermissionRequest, QuestionRequest, SessionStatus, FileDiff, AgentInfo } from "../types"
 import type { WebviewMessage } from "../types"
 import { MessageBubble } from "./MessageBubble"
 import { PermissionDialog } from "./PermissionDialog"
@@ -16,6 +16,7 @@ type Props = {
   hasSession: boolean
   fileChanges: FileDiff[]
   post: (msg: WebviewMessage) => void
+  agents?: AgentInfo[]
 }
 
 // Number of messages to show initially (2 rounds = 4 messages)
@@ -25,7 +26,7 @@ const LOAD_BATCH_SIZE = 4
 // Distance from top to trigger loading more messages (px)
 const SCROLL_THRESHOLD = 100
 
-export function MessageList({ messages, partDeltas, permissions, questions, sessionStatus, hasSession, fileChanges, post }: Props) {
+export function MessageList({ messages, partDeltas, permissions, questions, sessionStatus, hasSession, fileChanges, post, agents }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
@@ -155,7 +156,7 @@ export function MessageList({ messages, partDeltas, permissions, questions, sess
   return (
     <div className="message-list" ref={containerRef}>
       {visibleMessages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} fileChanges={fileChanges} post={post} />
+        <MessageBubble key={msg.id} message={msg} partDeltas={partDeltas} fileChanges={fileChanges} post={post} agents={agents} />
       ))}
 
       {permissions.map((req) => (
