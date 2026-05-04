@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { FileDiffItem, calculateFirstChangeLine } from "../../packages/ui/src/file-diff"
+import { ChevronDownIcon, ChevronRightIcon } from "../../packages/ui/src/primitives/Icon"
 import { renderMarkdown } from "../utils/markdown"
 import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, SubtaskPartData, AgentPartData, FileDiff as FileDiffType, AgentInfo } from "../types"
 import type { WebviewMessage } from "../types"
@@ -44,6 +45,48 @@ function UserMessageContent({ message }: { message: MessageInfo }) {
   )
 }
 
+function getToolIdentifier(part: ToolPartData): string {
+  return part.toolName || part.tool || ""
+}
+
+function isExplorationTool(part: PartData): boolean {
+  if (part.type !== "tool") return false
+  const toolPart = part as ToolPartData
+  const id = getToolIdentifier(toolPart)
+  return id === "glob" || id === "read"
+}
+
+type GroupedPart =
+  | { type: "single"; part: PartData }
+  | { type: "tool-group"; parts: ToolPartData[] }
+
+function groupToolCalls(parts: PartData[]): GroupedPart[] {
+  const result: GroupedPart[] = []
+  let i = 0
+
+  while (i < parts.length) {
+    const part = parts[i]
+
+    if (isExplorationTool(part)) {
+      const group: ToolPartData[] = [part as ToolPartData]
+      let j = i + 1
+
+      while (j < parts.length && isExplorationTool(parts[j])) {
+        group.push(parts[j] as ToolPartData)
+        j++
+      }
+
+      result.push({ type: "tool-group", parts: group })
+      i = j
+    } else {
+      result.push({ type: "single", part })
+      i++
+    }
+  }
+
+  return result
+}
+
 function AssistantMessageContent({
   message,
   partDeltas,
@@ -58,12 +101,26 @@ function AssistantMessageContent({
   agents?: AgentInfo[]
 }) {
   const parts = message.parts ?? []
+  const grouped = groupToolCalls(parts)
 
   return (
     <div className="message-parts">
-      {parts.map((part) => (
-        <Part key={part.id} part={part} delta={partDeltas[part.id]} fileChanges={fileChanges} post={post} agents={agents} />
-      ))}
+      {grouped.map((group, index) => {
+        if (group.type === "single") {
+          return (
+            <Part
+              key={group.part.id}
+              part={group.part}
+              delta={partDeltas[group.part.id]}
+              fileChanges={fileChanges}
+              post={post}
+              agents={agents}
+            />
+          )
+        } else {
+          return <ToolCallGroup key={`group-${index}`} parts={group.parts} />
+        }
+      })}
     </div>
   )
 }
@@ -143,6 +200,13 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
     )
   }
 
+  const toolIdentifier = part.toolName || part.tool || ""
+
+  // glob and read are rendered in aggregated groups by ToolCallGroup
+  if (toolIdentifier === "glob" || toolIdentifier === "read") {
+    return null
+  }
+
   const icon = status === "pending" ? "⏳" : status === "running" ? "⚡" : status === "error" ? "✕" : "✓"
   const label = title ?? part.toolName
 
@@ -169,6 +233,77 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
       )}
     </div>
   )
+}
+
+function ToolCallGroup({ parts }: { parts: ToolPartData[] }) {
+  const [expanded, setExpanded] = useState(false)
+
+  const isRunning = parts.some((p) => p.state.status === "running")
+  const statusLabel = isRunning ? "探索中" : "已探索"
+
+  const globCount = parts.filter((p) => getToolIdentifier(p) === "glob").length
+  const readCount = parts.filter((p) => getToolIdentifier(p) === "read").length
+
+  const summaryParts: string[] = []
+  if (globCount > 0) summaryParts.push(`${globCount}次搜索`)
+  if (readCount > 0) summaryParts.push(`${readCount}次读取`)
+  const summary = summaryParts.join("，")
+
+  return (
+    <div className="tool-call-group">
+      <div
+        className={`tool-call-group-header ${isRunning ? "running" : ""}`}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <span className="group-status">{statusLabel}</span>
+        <span className="group-summary">{summary}</span>
+        <span className="group-toggle">
+          {expanded ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+        </span>
+      </div>
+      {expanded && (
+        <div className="tool-call-group-body">
+          {parts.map((part, i) => (
+            <ToolCallCompact key={`${part.id}-${i}`} part={part} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ToolCallCompact({ part }: { part: ToolPartData }) {
+  const toolName = getToolIdentifier(part)
+  const { status, input } = part.state
+
+  if (toolName === "glob") {
+    const pattern = (input as { pattern?: string })?.pattern
+    return (
+      <div className={`tool-call-compact ${status}`}>
+        <span className="compact-name">Glob</span>
+        {pattern && <span className="compact-detail">/ pattern={pattern}</span>}
+      </div>
+    )
+  }
+
+  if (toolName === "read") {
+    const readInput = input as { filePath?: string; offset?: number; limit?: number } | undefined
+    const filePath = readInput?.filePath
+
+    const params: string[] = []
+    if (readInput?.offset !== undefined) params.push(`offset=${readInput.offset}`)
+    if (readInput?.limit !== undefined) params.push(`limit=${readInput.limit}`)
+    const paramStr = params.length > 0 ? params.join(" ") : ""
+
+    return (
+      <div className={`tool-call-compact ${status}`}>
+        <span className="compact-name">读取</span>
+        {filePath && <span className="compact-detail">{filePath} {paramStr}</span>}
+      </div>
+    )
+  }
+
+  return null
 }
 
 function ReasoningPart({ part }: { part: ReasoningPartData }) {
