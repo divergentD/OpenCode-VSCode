@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import "./SessionDrawer.css"
-import { TrashIcon, CheckIcon, ChevronRightIcon, ChevronDownIcon } from "../../packages/ui/src/primitives/Icon"
+import { TrashIcon, CheckIcon } from "../../packages/ui/src/primitives/Icon"
 import type { SessionInfo, SessionStatus } from "../types"
 
 type Props = {
@@ -99,27 +99,13 @@ export function SessionDrawer({
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("")
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set())
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const filteredSessions = sessions.filter((session) =>
-    session.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    !session.parentID && session.title?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const sessionTree = buildSessionTree(filteredSessions)
-
-  const toggleExpand = (sessionID: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setExpandedParents((prev) => {
-      const next = new Set(prev)
-      if (next.has(sessionID)) {
-        next.delete(sessionID)
-      } else {
-        next.add(sessionID)
-      }
-      return next
-    })
-  }
 
   // Sort by updated time (most recent first)
   const sorted = [...filteredSessions].sort(
@@ -170,8 +156,6 @@ export function SessionDrawer({
           {sessionTree.map(({ session, depth, children }) => {
             const isActive = session.id === activeSessionID
             const isConfirmingDelete = deleteConfirmId === session.id
-            const hasChildren = children.length > 0
-            const isExpanded = expandedParents.has(session.id)
 
             return (
               <div
@@ -184,16 +168,6 @@ export function SessionDrawer({
                   }
                 }}
               >
-                {hasChildren && (
-                  <button
-                    className="session-expand-toggle"
-                    onClick={(e) => toggleExpand(session.id, e)}
-                  >
-                    {isExpanded ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
-                  </button>
-                )}
-                {!hasChildren && <span className="session-expand-placeholder" />}
-
                 <div className="session-item-content">
                   <div className="session-item-title-row">
                     <span className="session-item-title">
@@ -205,9 +179,6 @@ export function SessionDrawer({
                     <span className="session-item-time">
                       {formatTime(session.time?.updated || session.time?.created || Date.now())}
                     </span>
-                    {session.parentID && (
-                      <span className="session-item-badge">child</span>
-                    )}
                   </div>
                 </div>
 

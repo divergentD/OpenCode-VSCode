@@ -29,12 +29,6 @@ export function ChatPanel({ state, dispatch, post }: Props) {
     }
   }
 
-  const handleCreateChild = () => {
-    if (state.activeSessionID) {
-      post({ type: "session.createChild", parentID: state.activeSessionID })
-    }
-  }
-
   const handleReturnToParent = () => {
     if (activeSession?.parentID) {
       post({ type: "session.select", sessionID: activeSession.parentID })
@@ -78,15 +72,6 @@ export function ChatPanel({ state, dispatch, post }: Props) {
               title="Back to parent session"
             >
               ← Back
-            </button>
-          )}
-          {!isSubSession && activeSession && (
-            <button 
-              className="btn-create-child" 
-              onClick={handleCreateChild}
-              title="Create sub-session"
-            >
-              Fork
             </button>
           )}
           <button className="btn-dropdown" onClick={() => setShowSessions(!showSessions)}>
