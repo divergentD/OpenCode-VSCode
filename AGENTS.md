@@ -120,6 +120,15 @@ setShowSessions((prev) => !prev)
 - `@opencode-ai/sdk` - 工作区依赖，API 客户端
 - `marked`、`dompurify` - Markdown 渲染
 
+## UI 设计规范
+
+### 工具调用组件样式
+
+- **简洁线性样式**：工具调用组件（如 Shell、探索组等）应采用简洁的线性文本样式，参考 `ToolCallGroup` 组件的实现。
+- **禁止气泡/卡片样式**：不要使用背景色、边框、圆角等气泡或卡片式样式来包裹工具调用组件。
+- **展开/收起图标**：必须使用 `@packages/ui/src/primitives/Icon/` 中的 `ChevronDownIcon` 和 `ChevronRightIcon` 作为展开和收起的指示符号。
+- **禁止使用三角形**：严禁使用 `▲`、`▼` 等三角形字符作为展开/收起指示器。
+
 ## 开发说明
 
 - 扩展通过 `postMessage` 与 webview 通信

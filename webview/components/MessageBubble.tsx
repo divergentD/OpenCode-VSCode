@@ -207,6 +207,11 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
     return null
   }
 
+  // bash tool calls get a dedicated Shell component
+  if (toolIdentifier === "bash") {
+    return <ShellPart part={part} />
+  }
+
   const icon = status === "pending" ? "⏳" : status === "running" ? "⚡" : status === "error" ? "✕" : "✓"
   const label = title ?? part.toolName
 
@@ -228,6 +233,48 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
             <pre className="tool-call-input">{JSON.stringify(input, null, 2)}</pre>
           ) : (
             <span style={{ opacity: 0.5 }}>No output</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ShellPart({ part }: { part: ToolPartData }) {
+  const [open, setOpen] = useState(false)
+  const { status, title, input, output, error } = part.state
+
+  const bashInput = input as { command?: string; description?: string } | undefined
+  const command = bashInput?.command || ""
+  const displayTitle = title || bashInput?.description || "Command"
+
+  const statusIcon = status === "pending" ? "○" : status === "running" ? "◐" : status === "error" ? "✕" : "✓"
+  const statusClass = `shell-status ${status}`
+
+  return (
+    <div className="shell-part">
+      <div className="shell-header" onClick={() => setOpen((v) => !v)}>
+        <span className="shell-label">Shell</span>
+        <span className={statusClass}>{statusIcon}</span>
+        <span className="shell-title">{displayTitle}</span>
+        <span className="shell-toggle">
+          {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+        </span>
+      </div>
+      {open && (
+        <div className="shell-body">
+          {command && (
+            <div className="shell-command">
+              <span className="shell-prompt">$</span>
+              <pre className="shell-command-text">{command}</pre>
+            </div>
+          )}
+          {error ? (
+            <div className="shell-error">{error}</div>
+          ) : output ? (
+            <pre className="shell-output">{output}</pre>
+          ) : (
+            <div className="shell-empty">No output</div>
           )}
         </div>
       )}
