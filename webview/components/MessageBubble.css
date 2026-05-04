@@ -154,6 +154,138 @@
   color: var(--vscode-textLink-foreground);
 }
 
+.shell-part {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.shell-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.shell-label {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.shell-status {
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shell-status.pending {
+  color: var(--vscode-descriptionForeground);
+}
+
+.shell-status.running {
+  color: var(--vscode-progressBar-background);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.shell-status.completed {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.shell-status.error {
+  color: var(--vscode-errorForeground);
+}
+
+.shell-title {
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-toggle {
+  display: flex;
+  align-items: center;
+  color: var(--vscode-descriptionForeground);
+  margin-left: 4px;
+}
+
+.shell-body {
+  padding: 4px 0;
+  padding-left: 12px;
+}
+
+.shell-command {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 2px solid var(--vscode-textLink-foreground);
+}
+
+.shell-prompt {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 13px;
+  color: var(--vscode-textLink-foreground);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.shell-command-text {
+  margin: 0;
+  padding: 0;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+  flex: 1;
+  background: transparent;
+  overflow: visible;
+  max-height: none;
+}
+
+.shell-output {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  border-left: 2px solid var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.shell-error {
+  padding: 8px 12px;
+  color: var(--vscode-errorForeground);
+  font-size: 13px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  border-left: 2px solid var(--vscode-errorForeground);
+}
+
+.shell-empty {
+  padding: 8px 12px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+  opacity: 0.5;
+}
+
 .tool-call {
   background: var(--vscode-dropdown-background);
   border: 1px solid var(--vscode-dropdown-border);
