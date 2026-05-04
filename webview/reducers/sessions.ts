@@ -2,7 +2,7 @@ import type { AppState } from "../state"
 import type { SessionInfo } from "../types"
 import type { ActionHandler } from "./types"
 
-function buildBreadcrumb(sessions: SessionInfo[], sessionID: string): SessionInfo[] {
+export function buildBreadcrumb(sessions: SessionInfo[], sessionID: string): SessionInfo[] {
   const breadcrumb: SessionInfo[] = []
   let current = sessions.find((s) => s.id === sessionID)
 

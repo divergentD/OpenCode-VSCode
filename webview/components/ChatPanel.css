@@ -148,8 +148,7 @@
   padding: 0 2px;
 }
 
-.btn-return-parent,
-.btn-create-child {
+.btn-return-parent {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -163,18 +162,8 @@
   transition: all 0.2s;
 }
 
-.btn-return-parent:hover,
-.btn-create-child:hover {
+.btn-return-parent:hover {
   background: var(--vscode-button-secondaryHoverBackground);
-}
-
-.btn-create-child {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-}
-
-.btn-create-child:hover {
-  background: var(--vscode-button-hoverBackground);
 }
 
 .thinking-indicator {

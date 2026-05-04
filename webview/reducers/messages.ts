@@ -2,6 +2,7 @@ import type { AppState } from "../state"
 import type { MessageInfo, PartData } from "../types"
 import type { ActionHandler } from "./types"
 import { extractTodosFromMessages } from "../utils/todos"
+import { buildBreadcrumb } from "./sessions"
 
 function updatePart(msgs: MessageInfo[], part: PartData): MessageInfo[] {
   const idx = msgs.findIndex((m) => m.id === part.messageID)
@@ -31,6 +32,7 @@ export const handleMessagesList: ActionHandler<{
   console.log("[reducer messages.list] messages count:", messages.length)
 
   const allTodos = extractTodosFromMessages(messages)
+  const sessionBreadcrumb = buildBreadcrumb(state.sessions, sessionID)
 
   console.log("[reducer messages.list] total todos:", allTodos.length)
 
@@ -38,6 +40,7 @@ export const handleMessagesList: ActionHandler<{
     ...state,
     messages: { ...state.messages, [sessionID]: messages },
     activeSessionID: sessionID,
+    sessionBreadcrumb,
     todos:
       allTodos.length > 0 ? { ...state.todos, [sessionID]: allTodos } : state.todos,
   }
