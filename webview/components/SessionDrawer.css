@@ -159,3 +159,61 @@
   color: var(--vscode-descriptionForeground);
   font-size: 14px;
 }
+
+.session-dropdown-item.depth-1 {
+  background: var(--vscode-list-inactiveSelectionBackground);
+}
+
+.session-dropdown-item.depth-2 {
+  background: var(--vscode-list-inactiveSelectionBackground);
+  opacity: 0.95;
+}
+
+.session-dropdown-item.depth-3 {
+  background: var(--vscode-list-inactiveSelectionBackground);
+  opacity: 0.9;
+}
+
+.session-expand-toggle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 4px;
+  padding: 0;
+}
+
+.session-expand-toggle:hover {
+  background: var(--vscode-toolbar-hoverBackground);
+  color: var(--vscode-foreground);
+}
+
+.session-expand-placeholder {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.session-item-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.session-dropdown-item.depth-1.active,
+.session-dropdown-item.depth-2.active,
+.session-dropdown-item.depth-3.active {
+  background: var(--vscode-list-activeSelectionBackground);
+}

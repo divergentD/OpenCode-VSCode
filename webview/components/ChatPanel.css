@@ -104,6 +104,79 @@
   background: var(--vscode-button-hoverBackground);
 }
 
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 300px;
+  overflow: hidden;
+}
+
+.breadcrumb-item {
+  background: none;
+  border: none;
+  color: var(--vscode-textLink-foreground);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.breadcrumb-item:hover {
+  background: var(--vscode-list-hoverBackground);
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: var(--vscode-foreground);
+  font-weight: 600;
+  cursor: default;
+}
+
+.breadcrumb-item.active:hover {
+  background: none;
+  text-decoration: none;
+}
+
+.breadcrumb-separator {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.btn-return-parent,
+.btn-create-child {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--vscode-button-secondaryBackground);
+  border: 1px solid var(--vscode-button-border);
+  border-radius: 6px;
+  color: var(--vscode-button-secondaryForeground);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-return-parent:hover,
+.btn-create-child:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-create-child {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.btn-create-child:hover {
+  background: var(--vscode-button-hoverBackground);
+}
+
 .thinking-indicator {
   display: flex;
   align-items: center;

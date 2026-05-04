@@ -88,12 +88,13 @@ export class ChatProvider implements vscode.WebviewViewProvider, vscode.Disposab
     this.webviewProvider.post(msg)
   }
 
-  async newSession(): Promise<void> {
+  async newSession(parentID?: string): Promise<void> {
     const client = this.serverManager.getClient()
     const directory = this.serverManager.getDirectory()
     if (!client || !directory) return
 
-    const result = await client.session.create({ query: { directory } })
+    const body = parentID ? { parentID } : {}
+    const result = await client.session.create({ query: { directory }, body })
     if (result.data) {
       this.post({ type: "session.created", session: result.data })
     }

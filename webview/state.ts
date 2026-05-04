@@ -21,6 +21,7 @@ export type AppState = {
   workspaceMissing: boolean
   sessions: SessionInfo[]
   activeSessionID: string | null
+  sessionBreadcrumb: SessionInfo[]
   messages: Record<string, MessageInfo[]>
   partDeltas: Record<string, string>
   permissions: PermissionRequest[]
@@ -47,6 +48,7 @@ export const initialState: AppState = {
   workspaceMissing: false,
   sessions: [],
   activeSessionID: null,
+  sessionBreadcrumb: [],
   messages: {},
   partDeltas: {},
   permissions: [],
@@ -79,6 +81,7 @@ export type Action =
   | { type: "agent.select"; agentID: string | null }
   | { type: "model.select"; modelID: string | null }
   | { type: "session.diff"; sessionID: string; diffs: FileDiff[] }
+  | { type: "session.breadcrumb.update"; breadcrumb: SessionInfo[] }
 
 import { actionHandlers } from "./reducers"
 import { eventHandlers } from "./event-handlers"
