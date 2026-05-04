@@ -81,6 +81,79 @@
   width: 100%;
 }
 
+.tool-call-group {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.tool-call-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tool-call-group-header.running .group-status {
+  color: var(--vscode-progressBar-background);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.group-status {
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  font-size: 13px;
+}
+
+.group-summary {
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
+}
+
+.group-toggle {
+  display: flex;
+  align-items: center;
+  color: var(--vscode-descriptionForeground);
+  margin-left: 4px;
+}
+
+.tool-call-group-body {
+  padding: 4px 0;
+  padding-left: 12px;
+}
+
+.tool-call-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  border-left: 2px solid var(--vscode-descriptionForeground);
+  padding-left: 8px;
+  margin: 2px 0;
+}
+
+.tool-call-compact.running {
+  border-left-color: var(--vscode-progressBar-background);
+}
+
+.tool-call-compact.completed {
+  border-left-color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.tool-call-compact .compact-name {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+}
+
+.tool-call-compact .compact-detail {
+  font-family: "SF Mono", Monaco, monospace;
+  font-size: 12px;
+  color: var(--vscode-textLink-foreground);
+}
+
 .tool-call {
   background: var(--vscode-dropdown-background);
   border: 1px solid var(--vscode-dropdown-border);
