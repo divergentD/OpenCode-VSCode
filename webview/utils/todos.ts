@@ -40,9 +40,13 @@ type ToolCallHandler = (state: ToolCallState, message: MessageInfo) => TodoItem[
 
 const todoWriteHandler: ToolCallHandler = (state, message) => {
   const todos: TodoItem[] = []
-  const todoItems = state.metadata?.todos || state.input?.todos || []
+
+  const todoItems =
+    state.metadata?.todos || state.input?.todos || []
 
   console.log("[todowrite handler] found", todoItems.length, "todos")
+  console.log("[todowrite handler] state.metadata:", JSON.stringify(state.metadata))
+  console.log("[todowrite handler] state.input:", JSON.stringify(state.input))
 
   for (const item of todoItems) {
     if (item.content) {
@@ -135,7 +139,15 @@ export function extractTodosFromMessages(messages: MessageInfo[]): TodoItem[] {
     if (message.role === "assistant") {
       const parsedTodos = parseTodosFromMessage(message)
       for (const todo of parsedTodos) {
-        if (!existingTitles.has(todo.title)) {
+        const existingIndex = allTodos.findIndex((t) => t.title === todo.title)
+        if (existingIndex >= 0) {
+          allTodos[existingIndex] = {
+            ...allTodos[existingIndex],
+            status: todo.status,
+            priority: todo.priority ?? allTodos[existingIndex].priority,
+            updatedAt: Date.now(),
+          }
+        } else {
           allTodos.push(todo)
           existingTitles.add(todo.title)
         }
@@ -147,7 +159,27 @@ export function extractTodosFromMessages(messages: MessageInfo[]): TodoItem[] {
 }
 
 export function mergeTodos(existing: TodoItem[], newTodos: TodoItem[]): TodoItem[] {
-  const existingTitles = new Set(existing.map((t) => t.title))
-  const uniqueNewTodos = newTodos.filter((t) => !existingTitles.has(t.title))
-  return [...existing, ...uniqueNewTodos]
+  const existingMap = new Map(existing.map((t) => [t.title, t]))
+  const merged: TodoItem[] = []
+
+  for (const todo of newTodos) {
+    const existingTodo = existingMap.get(todo.title)
+    if (existingTodo) {
+      merged.push({
+        ...existingTodo,
+        status: todo.status,
+        priority: todo.priority ?? existingTodo.priority,
+        updatedAt: Date.now(),
+      })
+      existingMap.delete(todo.title)
+    } else {
+      merged.push(todo)
+    }
+  }
+
+  for (const todo of existingMap.values()) {
+    merged.push(todo)
+  }
+
+  return merged
 }
