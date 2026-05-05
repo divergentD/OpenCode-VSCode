@@ -13,6 +13,10 @@ const reactAlias = {
   "react/jsx-dev-runtime": path.resolve(__dirname, "node_modules/react/jsx-dev-runtime"),
 }
 
+const packagesAlias = {
+  "@packages/ui": path.resolve(__dirname, "packages/ui/src"),
+}
+
 /**
  * Build configuration for Extension Host (Node.js)
  */
@@ -58,7 +62,7 @@ async function buildWebview() {
     minify: production,
     sourcemap: !production,
     sourcesContent: false,
-    alias: reactAlias,
+    alias: { ...reactAlias, ...packagesAlias },
     outfile: "dist/webview.js",
     logLevel: watch ? "silent" : "info",
   })
@@ -89,7 +93,7 @@ async function buildFileChangesWebview() {
     minify: production,
     sourcemap: !production,
     sourcesContent: false,
-    alias: reactAlias,
+    alias: { ...reactAlias, ...packagesAlias },
     outfile: "dist/fileChangesWebview.js",
     logLevel: watch ? "silent" : "info",
   })
