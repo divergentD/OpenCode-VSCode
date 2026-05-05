@@ -328,21 +328,37 @@ describe("mergeTodos", () => {
     const result = mergeTodos(existing, newTodos)
 
     expect(result).toHaveLength(2)
-    expect(result[0].title).toBe("Existing")
-    expect(result[1].title).toBe("New")
+    expect(result[0].title).toBe("New")
+    expect(result[1].title).toBe("Existing")
   })
 
-  it("skips duplicates by title", () => {
+  it("updates existing todo status by title", () => {
     const existing: TodoItem[] = [
-      { id: "1", sessionID: "s1", title: "Duplicate", status: "pending", createdAt: Date.now() },
+      { id: "1", sessionID: "s1", title: "Task", status: "pending", createdAt: Date.now() },
     ]
     const newTodos: TodoItem[] = [
-      { id: "2", sessionID: "s1", title: "Duplicate", status: "completed", createdAt: Date.now() },
+      { id: "2", sessionID: "s1", title: "Task", status: "completed", createdAt: Date.now() },
     ]
 
     const result = mergeTodos(existing, newTodos)
 
     expect(result).toHaveLength(1)
-    expect(result[0].status).toBe("pending")
+    expect(result[0].status).toBe("completed")
+    expect(result[0].id).toBe("1")
+  })
+
+  it("updates priority when status changes", () => {
+    const existing: TodoItem[] = [
+      { id: "1", sessionID: "s1", title: "Task", status: "pending", createdAt: Date.now() },
+    ]
+    const newTodos: TodoItem[] = [
+      { id: "2", sessionID: "s1", title: "Task", status: "in_progress", priority: "high", createdAt: Date.now() },
+    ]
+
+    const result = mergeTodos(existing, newTodos)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].status).toBe("in_progress")
+    expect(result[0].priority).toBe("high")
   })
 })
