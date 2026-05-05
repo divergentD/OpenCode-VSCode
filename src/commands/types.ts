@@ -9,3 +9,9 @@ export interface Command {
 export interface CommandContext {
   post(message: HostMessage): void
 }
+
+export interface CommandRegistry {
+  get(type: string): Command | undefined
+  has(type: string): boolean
+  register(command: Command): void
+}

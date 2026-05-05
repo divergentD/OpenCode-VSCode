@@ -6,6 +6,7 @@ export type HostMessage = { type: string; [key: string]: unknown }
 export class WebviewProvider {
   private view?: vscode.WebviewView
   private postMessageCallback?: (msg: HostMessage) => void
+  private disposables: vscode.Disposable[] = []
 
   constructor(private ctx: vscode.ExtensionContext) {}
 
@@ -18,8 +19,12 @@ export class WebviewProvider {
     view.webview.html = this.getHtml(view.webview)
   }
 
-  public setOnDidReceiveMessage(callback: (msg: unknown) => void): void {
-    this.view?.webview.onDidReceiveMessage(callback)
+  public setOnDidReceiveMessage(callback: (msg: unknown) => void): vscode.Disposable | undefined {
+    const disposable = this.view?.webview.onDidReceiveMessage(callback)
+    if (disposable) {
+      this.disposables.push(disposable)
+    }
+    return disposable
   }
 
   public setPostMessageCallback(callback: (msg: HostMessage) => void): void {
@@ -54,5 +59,11 @@ export class WebviewProvider {
 
   public hasView(): boolean {
     return !!this.view
+  }
+
+  public dispose(): void {
+    this.disposables.forEach((d) => d.dispose())
+    this.disposables = []
+    this.view = undefined
   }
 }

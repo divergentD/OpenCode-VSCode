@@ -11,23 +11,28 @@ export class SessionSelectCommand implements Command {
     const directory = dispatcher.getDirectory()
     if (!client || !directory) return
 
-    console.log("[opencode] Fetching messages for session:", msg.sessionID)
-    const result = await client.session.messages({ path: { id: msg.sessionID }, query: { directory } })
-    console.log("[opencode] Messages result:", result)
+    console.log("[SessionSelectCommand] Fetching messages for session:", msg.sessionID)
+    let messages: unknown[] = []
+    try {
+      const result = await client.session.messages({ path: { id: msg.sessionID }, query: { directory } })
+      console.log("[SessionSelectCommand] Messages result:", result)
 
-    let messages: any[] = []
-    if (result.error) {
-      console.error("[opencode] Failed to fetch messages:", result.error)
-    } else if (result.data) {
-      messages = result.data.map((item: any) => ({
-        ...item.info,
-        parts: item.parts || []
-      }))
-      console.log("[opencode] Sending messages.list with", messages.length, "messages")
-      console.log("[opencode] First message sample:", messages[0] ? JSON.stringify(messages[0], null, 2) : "none")
-      console.log("[opencode] Messages with parts:", messages.filter((m: any) => m.parts && m.parts.length > 0).length)
-    } else {
-      console.warn("[opencode] No messages data returned")
+      if (result.error) {
+        console.error("[SessionSelectCommand] Failed to fetch messages:", result.error)
+      } else if (result.data) {
+        messages = result.data.map((item: unknown) => {
+          const info = (item as Record<string, unknown>)?.info ?? {}
+          const parts = (item as Record<string, unknown>)?.parts ?? []
+          return { ...info, parts }
+        })
+        console.log("[SessionSelectCommand] Sending messages.list with", messages.length, "messages")
+      } else {
+        console.warn("[SessionSelectCommand] No messages data returned")
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[SessionSelectCommand] Failed to fetch messages:", message)
+      dispatcher.postMessage({ type: "server.error", message: `Failed to fetch messages: ${message}` })
     }
     dispatcher.postMessage({ type: "messages.list", sessionID: msg.sessionID, messages })
 

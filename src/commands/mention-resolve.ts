@@ -1,22 +1,25 @@
-import type { ChatProvider } from "../provider"
-import type { WebviewMessage } from "../types"
+import type { MessageDispatcher } from "../managers/MessageDispatcher"
+import type { WebviewMessage, HostMessage } from "../types"
 import type { Command } from "./types"
 
 export class MentionResolveCommand implements Command {
   readonly type = "mention.resolve"
 
-  async execute(provider: ChatProvider, msg: WebviewMessage & { kind: "selection" | "problems" | "terminal" }): Promise<void> {
-    const mentions = provider["mentions"]
+  async execute(dispatcher: MessageDispatcher, msg: WebviewMessage & { kind: "selection" | "problems" | "terminal" }): Promise<void> {
+    const contextManager = dispatcher.getContextManager()
+    if (!contextManager) return
+    
+    const post = (message: HostMessage) => dispatcher.postMessage(message)
     
     if (msg.kind === "selection") {
-      const sel = mentions.resolveSelection()
-      provider["post"]({ type: "context.resolved", kind: "selection", payload: sel })
+      const sel = contextManager.resolveSelection()
+      post({ type: "context.resolved", kind: "selection", payload: sel })
     } else if (msg.kind === "problems") {
-      const probs = mentions.resolveProblems()
-      provider["post"]({ type: "context.resolved", kind: "problems", payload: probs })
+      const probs = contextManager.resolveProblems()
+      post({ type: "context.resolved", kind: "problems", payload: probs })
     } else if (msg.kind === "terminal") {
-      const text = mentions.resolveTerminal()
-      provider["post"]({ type: "context.resolved", kind: "terminal", payload: text })
+      const text = contextManager.resolveTerminal()
+      post({ type: "context.resolved", kind: "terminal", payload: text })
     }
   }
 }
