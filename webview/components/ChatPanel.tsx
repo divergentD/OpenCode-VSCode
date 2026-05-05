@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import type { AppState, Action } from "../state"
 import type { WebviewMessage } from "../types"
+import { ChevronDownIcon } from "@packages/ui/primitives/Icon"
 import { MessageList } from "./MessageList"
 import { PromptInput } from "./PromptInput"
 import { SessionDrawer } from "./SessionDrawer"
@@ -76,7 +77,7 @@ export function ChatPanel({ state, dispatch, post }: Props) {
           )}
           <button className="btn-dropdown" onClick={() => setShowSessions(!showSessions)}>
             History
-            <span>▼</span>
+            <ChevronDownIcon size={12} />
           </button>
           <button className="btn-new-chat" onClick={() => post({ type: "session.create" })} title="New Chat">
             +
