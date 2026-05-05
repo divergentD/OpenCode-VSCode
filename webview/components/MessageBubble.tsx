@@ -212,7 +212,15 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
     return <ShellPart part={part} />
   }
 
-  const icon = status === "pending" ? "⏳" : status === "running" ? "⚡" : status === "error" ? "✕" : "✓"
+  if (toolIdentifier === "edit") {
+    return <EditPart part={part} post={post} />
+  }
+
+  if (toolIdentifier === "write") {
+    return <WritePart part={part} post={post} />
+  }
+
+  const icon = status === "pending" ? "○" : status === "running" ? "◐" : status === "error" ? "✕" : "✓"
   const label = title ?? part.toolName
 
   return (
@@ -221,7 +229,9 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
         <span className="tool-call-icon">{icon}</span>
         <span className="tool-call-name">{part.toolName}</span>
         {label && label !== part.toolName && <span className="tool-call-title">{label}</span>}
-        <span className="tool-call-toggle">{open ? "▲" : "▼"}</span>
+        <span className="tool-call-toggle">
+          {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+        </span>
       </div>
       {open && (
         <div className="tool-call-body">
@@ -275,6 +285,122 @@ function ShellPart({ part }: { part: ToolPartData }) {
             <pre className="shell-output">{output}</pre>
           ) : (
             <div className="shell-empty">No output</div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EditPart({ part, post }: { part: ToolPartData; post: (msg: WebviewMessage) => void }) {
+  const [open, setOpen] = useState(false)
+  const { status, title, input, error } = part.state
+
+  const editInput = input as { filePath?: string; oldString?: string; newString?: string } | undefined
+  const filePath = editInput?.filePath || ""
+  const displayTitle = title || filePath || "Edit"
+  const oldString = editInput?.oldString || ""
+  const newString = editInput?.newString || ""
+
+  const statusIcon = status === "pending" ? "○" : status === "running" ? "◐" : status === "error" ? "✕" : "✓"
+  const statusClass = `shell-status ${status}`
+
+  const oldLines = oldString ? oldString.split("\n") : []
+  const newLines = newString ? newString.split("\n") : []
+  const additions = newLines.length
+  const deletions = oldLines.length
+
+  const diffStats = `+${additions}/-${deletions}`
+
+  return (
+    <div className="shell-part">
+      <div className="shell-header" onClick={() => setOpen((v) => !v)}>
+        <span className="shell-label">Edit</span>
+        <span className={statusClass}>{statusIcon}</span>
+        <span className="shell-title">{displayTitle}</span>
+        <span className="shell-stats">{diffStats}</span>
+        <span className="shell-toggle">
+          {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+        </span>
+      </div>
+      {open && (
+        <div className="shell-body">
+          {error ? (
+            <div className="edit-error">{error}</div>
+          ) : (
+            <FileDiffItem
+              diff={{
+                file: filePath,
+                before: oldString,
+                after: newString,
+                additions,
+                deletions,
+              }}
+              callbacks={{
+                onFileOpen: (path, line) => post({ type: "file.open", path, line }),
+                onShowDiff: (path, before, after, patch) => {
+                  post({ type: "file.diff", path, before, after, patch })
+                },
+              }}
+              isExpanded={true}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WritePart({ part, post }: { part: ToolPartData; post: (msg: WebviewMessage) => void }) {
+  const [open, setOpen] = useState(false)
+  const { status, title, input, error } = part.state
+
+  const writeInput = input as { filePath?: string; content?: string } | undefined
+  const filePath = writeInput?.filePath || ""
+  const displayTitle = title || filePath || "Write"
+  const content = writeInput?.content || ""
+
+  const statusIcon = status === "pending" ? "○" : status === "running" ? "◐" : status === "error" ? "✕" : "✓"
+  const statusClass = `shell-status ${status}`
+
+  const lines = content ? content.split("\n") : []
+  const additions = lines.length
+  const deletions = 0
+
+  const diffStats = `+${additions}/-${deletions}`
+
+  return (
+    <div className="shell-part">
+      <div className="shell-header" onClick={() => setOpen((v) => !v)}>
+        <span className="shell-label">Write</span>
+        <span className={statusClass}>{statusIcon}</span>
+        <span className="shell-title">{displayTitle}</span>
+        <span className="shell-stats">{diffStats}</span>
+        <span className="shell-toggle">
+          {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
+        </span>
+      </div>
+      {open && (
+        <div className="shell-body">
+          {error ? (
+            <div className="write-error">{error}</div>
+          ) : (
+            <FileDiffItem
+              diff={{
+                file: filePath,
+                before: "",
+                after: content,
+                additions,
+                deletions,
+              }}
+              callbacks={{
+                onFileOpen: (path, line) => post({ type: "file.open", path, line }),
+                onShowDiff: (path, before, after, patch) => {
+                  post({ type: "file.diff", path, before, after, patch })
+                },
+              }}
+              isExpanded={true}
+            />
           )}
         </div>
       )}
