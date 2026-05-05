@@ -61,7 +61,7 @@ export function ChatPanel({ state, dispatch, post }: Props) {
               ))}
             </div>
           ) : (
-            <span className="brand-name">opencode</span>
+            <span className="brand-name">{activeSession?.title || "New Chat"}</span>
           )}
         </div>
         <div className="top-bar-right">
