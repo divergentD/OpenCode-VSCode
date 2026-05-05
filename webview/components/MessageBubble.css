@@ -209,11 +209,23 @@
 }
 
 .shell-stats {
-  color: var(--vscode-descriptionForeground);
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   font-family: "SF Mono", Monaco, monospace;
   margin-left: auto;
   margin-right: 4px;
+}
+
+.shell-stats-add {
+  color: var(--vscode-gitDecoration-addedResourceForeground);
+  font-weight: 600;
+}
+
+.shell-stats-del {
+  color: var(--vscode-gitDecoration-deletedResourceForeground);
+  font-weight: 600;
 }
 
 .shell-toggle {
