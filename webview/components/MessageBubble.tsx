@@ -53,7 +53,7 @@ function isExplorationTool(part: PartData): boolean {
   if (part.type !== "tool") return false
   const toolPart = part as ToolPartData
   const id = getToolIdentifier(toolPart)
-  return id === "glob" || id === "read"
+  return id === "glob" || id === "read" || id === "grep"
 }
 
 type GroupedPart =
@@ -197,12 +197,10 @@ function ToolCallPart({ part, post, agents }: { part: ToolPartData; post: (msg: 
 
   const toolIdentifier = part.toolName || part.tool || ""
 
-  // glob and read are rendered in aggregated groups by ToolCallGroup
-  if (toolIdentifier === "glob" || toolIdentifier === "read") {
+  if (toolIdentifier === "glob" || toolIdentifier === "read" || toolIdentifier === "grep") {
     return null
   }
 
-  // bash tool calls get a dedicated Shell component
   if (toolIdentifier === "bash") {
     return <ShellPart part={part} />
   }
@@ -411,9 +409,11 @@ function ToolCallGroup({ parts }: { parts: ToolPartData[] }) {
 
   const globCount = parts.filter((p) => getToolIdentifier(p) === "glob").length
   const readCount = parts.filter((p) => getToolIdentifier(p) === "read").length
+  const grepCount = parts.filter((p) => getToolIdentifier(p) === "grep").length
 
   const summaryParts: string[] = []
   if (globCount > 0) summaryParts.push(`${globCount}次搜索`)
+  if (grepCount > 0) summaryParts.push(`${grepCount}次搜索`)
   if (readCount > 0) summaryParts.push(`${readCount}次读取`)
   const summary = summaryParts.join("，")
 
@@ -444,11 +444,11 @@ function ToolCallCompact({ part }: { part: ToolPartData }) {
   const toolName = getToolIdentifier(part)
   const { status, input } = part.state
 
-  if (toolName === "glob") {
+  if (toolName === "glob" || toolName === "grep") {
     const pattern = (input as { pattern?: string })?.pattern
     return (
       <div className={`tool-call-compact ${status}`}>
-        <span className="compact-name">Glob</span>
+        <span className="compact-name">{toolName === "grep" ? "Grep" : "Glob"}</span>
         {pattern && <span className="compact-detail">/ pattern={pattern}</span>}
       </div>
     )
