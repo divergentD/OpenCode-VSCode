@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react"
-import { FileDiffItem, calculateFirstChangeLine } from "../../packages/ui/src/file-diff"
+import React, { useState } from "react"
+import { FileDiffItem } from "../../packages/ui/src/file-diff"
 import { ChevronDownIcon, ChevronRightIcon } from "../../packages/ui/src/primitives/Icon"
 import { renderMarkdown } from "../utils/markdown"
-import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, PatchPartData, SubtaskPartData, AgentPartData, FileDiff as FileDiffType, AgentInfo } from "../types"
+import type { MessageInfo, PartData, TextPartData, ToolPartData, ReasoningPartData, SubtaskPartData, AgentPartData, FileDiff as FileDiffType, AgentInfo } from "../types"
 import type { WebviewMessage } from "../types"
 
 interface Props {
@@ -24,7 +24,7 @@ export function MessageBubble({ message, partDeltas, fileChanges, post, agents }
         {isUser ? (
           <UserMessageContent message={message} />
         ) : (
-          <AssistantMessageContent message={message} partDeltas={partDeltas} fileChanges={fileChanges} post={post} agents={agents} />
+          <AssistantMessageContent message={message} partDeltas={partDeltas} post={post} agents={agents} />
         )}
         {message.error && (
           <div className="message-error">⚠ {message.error.message}</div>
@@ -90,13 +90,11 @@ function groupToolCalls(parts: PartData[]): GroupedPart[] {
 function AssistantMessageContent({
   message,
   partDeltas,
-  fileChanges,
   post,
   agents,
 }: {
   message: MessageInfo
   partDeltas: Record<string, string>
-  fileChanges: FileDiffType[]
   post: (msg: WebviewMessage) => void
   agents?: AgentInfo[]
 }) {
@@ -112,7 +110,6 @@ function AssistantMessageContent({
               key={group.part.id}
               part={group.part}
               delta={partDeltas[group.part.id]}
-              fileChanges={fileChanges}
               post={post}
               agents={agents}
             />
@@ -125,7 +122,7 @@ function AssistantMessageContent({
   )
 }
 
-function Part({ part, delta, fileChanges, post, agents }: { part: PartData; delta?: string; fileChanges: FileDiffType[]; post: (msg: WebviewMessage) => void; agents?: AgentInfo[] }) {
+function Part({ part, delta, post, agents }: { part: PartData; delta?: string; post: (msg: WebviewMessage) => void; agents?: AgentInfo[] }) {
   switch (part.type) {
     case "text":
       return <TextPart part={part as TextPartData} delta={delta} />
@@ -133,8 +130,6 @@ function Part({ part, delta, fileChanges, post, agents }: { part: PartData; delt
       return <ToolCallPart part={part as ToolPartData} post={post} agents={agents} />
     case "reasoning":
       return <ReasoningPart part={part as ReasoningPartData} />
-    case "patch":
-      return <PatchPart part={part as PatchPartData} fileChanges={fileChanges} post={post} />
     case "subtask":
       return <SubtaskPart part={part as SubtaskPartData} post={post} />
     case "agent":
@@ -310,15 +305,16 @@ function EditPart({ part, post }: { part: ToolPartData; post: (msg: WebviewMessa
   const additions = newLines.length
   const deletions = oldLines.length
 
-  const diffStats = `+${additions}/-${deletions}`
-
   return (
     <div className="shell-part">
       <div className="shell-header" onClick={() => setOpen((v) => !v)}>
         <span className="shell-label">Edit</span>
         <span className={statusClass}>{statusIcon}</span>
         <span className="shell-title">{displayTitle}</span>
-        <span className="shell-stats">{diffStats}</span>
+        <span className="shell-stats">
+          <span className="shell-stats-add">+{additions}</span>
+          <span className="shell-stats-del">-{deletions}</span>
+        </span>
         <span className="shell-toggle">
           {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
         </span>
@@ -342,7 +338,6 @@ function EditPart({ part, post }: { part: ToolPartData; post: (msg: WebviewMessa
                   post({ type: "file.diff", path, before, after, patch })
                 },
               }}
-              isExpanded={true}
             />
           )}
         </div>
@@ -367,15 +362,16 @@ function WritePart({ part, post }: { part: ToolPartData; post: (msg: WebviewMess
   const additions = lines.length
   const deletions = 0
 
-  const diffStats = `+${additions}/-${deletions}`
-
   return (
     <div className="shell-part">
       <div className="shell-header" onClick={() => setOpen((v) => !v)}>
         <span className="shell-label">Write</span>
         <span className={statusClass}>{statusIcon}</span>
         <span className="shell-title">{displayTitle}</span>
-        <span className="shell-stats">{diffStats}</span>
+        <span className="shell-stats">
+          <span className="shell-stats-add">+{additions}</span>
+          <span className="shell-stats-del">-{deletions}</span>
+        </span>
         <span className="shell-toggle">
           {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
         </span>
@@ -399,7 +395,6 @@ function WritePart({ part, post }: { part: ToolPartData; post: (msg: WebviewMess
                   post({ type: "file.diff", path, before, after, patch })
                 },
               }}
-              isExpanded={true}
             />
           )}
         </div>
@@ -482,105 +477,6 @@ function ToolCallCompact({ part }: { part: ToolPartData }) {
 function ReasoningPart({ part }: { part: ReasoningPartData }) {
   if (!part.text) return null
   return <div className="part-reasoning">{part.text}</div>
-}
-
-function FileDiffView({ diff, filePath, post }: {
-  diff: FileDiffType
-  filePath: string
-  post: (msg: WebviewMessage) => void
-}) {
-  return (
-    <FileDiffItem 
-      diff={{
-        file: filePath,
-        ...(diff.before !== undefined && { before: diff.before }),
-        ...(diff.after !== undefined && { after: diff.after }),
-        ...(diff.patch !== undefined && { patch: diff.patch }),
-        additions: diff.additions,
-        deletions: diff.deletions
-      }}
-      callbacks={{
-        onFileOpen: (path, line) => post({ type: "file.open", path, line }),
-        onShowDiff: (path, before, after, patch) => {
-          post({ type: "file.diff", path, before, after, patch })
-        }
-      }}
-    />
-  )
-}
-
-function PatchPart({ part, fileChanges, post }: { part: PatchPartData; fileChanges: FileDiffType[]; post: (msg: WebviewMessage) => void }) {
-  if (!part.files?.length) return null
-
-  useEffect(() => {
-    console.log('[PatchPart] fileChanges updated:', fileChanges.length, 'items')
-    console.log('[PatchPart] files in part:', part.files)
-  }, [fileChanges, part.files])
-
-  const handleOpenFile = (filePath: string, diff?: FileDiffType) => {
-    console.log('[PatchPart] Opening file:', filePath)
-    let line = 0
-    if (diff && diff.before !== undefined && diff.after !== undefined) {
-      line = calculateFirstChangeLine(diff.before, diff.after)
-      console.log('[PatchPart] First change at line:', line)
-    }
-    post({ type: "file.open", path: filePath, line })
-  }
-
-  const getFileDiff = (filePath: string): FileDiffType | undefined => {
-    let diff = fileChanges.find(fc => fc.file === filePath)
-    if (diff) return diff
-
-    const fileName = filePath.split('/').pop()
-    if (fileName) {
-      diff = fileChanges.find(fc => {
-        const fcFileName = fc.file.split('/').pop()
-        return fcFileName === fileName
-      })
-    }
-
-    console.log('[PatchPart] Looking for:', filePath, 'Found:', diff ? 'yes' : 'no')
-    return diff
-  }
-
-  return (
-    <div className="part-patch">
-      <div className="patch-header">
-        <span>File Changes</span>
-        <span className="patch-file-count">{part.files.length} files</span>
-      </div>
-      <div className="patch-files">
-        {part.files.map((filePath, i) => {
-          const diff = getFileDiff(filePath)
-
-          if (!diff) {
-            const fileName = filePath.split('/').pop() || filePath
-            return (
-              <div key={i} className="patch-file-simple">
-                <span className="patch-path-simple">{fileName}</span>
-                <button
-                  className="patch-btn-simple"
-                  onClick={() => handleOpenFile(filePath)}
-                  title="打开文件"
-                >
-                  📄
-                </button>
-              </div>
-            )
-          }
-
-          return (
-            <FileDiffView
-              key={i}
-              diff={diff}
-              filePath={filePath}
-              post={post}
-            />
-          )
-        })}
-      </div>
-    </div>
-  )
 }
 
 function SubtaskPart({ part, post }: { part: SubtaskPartData; post: (msg: WebviewMessage) => void }) {
