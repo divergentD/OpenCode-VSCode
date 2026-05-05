@@ -208,6 +208,14 @@
   text-overflow: ellipsis;
 }
 
+.shell-stats {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  font-family: "SF Mono", Monaco, monospace;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
 .shell-toggle {
   display: flex;
   align-items: center;
@@ -284,6 +292,24 @@
   color: var(--vscode-descriptionForeground);
   font-size: 13px;
   opacity: 0.5;
+}
+
+.edit-error {
+  padding: 8px 12px;
+  color: var(--vscode-errorForeground);
+  font-size: 13px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  border-left: 2px solid var(--vscode-errorForeground);
+}
+
+.write-error {
+  padding: 8px 12px;
+  color: var(--vscode-errorForeground);
+  font-size: 13px;
+  background: var(--vscode-input-background);
+  border-radius: 6px;
+  border-left: 2px solid var(--vscode-errorForeground);
 }
 
 .tool-call {
