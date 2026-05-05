@@ -1,26 +1,26 @@
 import * as vscode from "vscode"
 import * as path from "path"
-import type { ChatProvider } from "../provider"
+import * as fs from "fs"
+import type { MessageDispatcher } from "../managers/MessageDispatcher"
 import type { WebviewMessage } from "../types"
 import type { Command } from "./types"
 
 export class FileOpenCommand implements Command {
   readonly type = "file.open"
 
-  async execute(provider: ChatProvider, msg: WebviewMessage & { path: string; line?: number; column?: number }): Promise<void> {
-    const directory = provider["directory"]
+  async execute(dispatcher: MessageDispatcher, msg: WebviewMessage & { path: string; line?: number; column?: number }): Promise<void> {
+    const directory = dispatcher.getDirectory()
     if (!directory || !msg.path) {
-      console.log("[provider] file.open: missing directory or path")
+      console.log("[FileOpenCommand] file.open: missing directory or path")
       return
     }
     const openFilePath = path.isAbsolute(msg.path) ? msg.path : path.join(directory, msg.path)
-    console.log("[provider] file.open: opening file at", openFilePath)
+    console.log("[FileOpenCommand] file.open: opening file at", openFilePath)
     
     // Check if file exists
-    const fs = require("fs")
     if (!fs.existsSync(openFilePath)) {
-      console.error("[provider] file.open: file does not exist", openFilePath)
-      vscode.window.showErrorMessage(`文件不存在: ${msg.path}`)
+      console.error("[FileOpenCommand] file.open: file does not exist", openFilePath)
+      vscode.window.showErrorMessage(`File does not exist: ${msg.path}`)
       return
     }
     
@@ -32,17 +32,18 @@ export class FileOpenCommand implements Command {
       openOptions.selection = new vscode.Range(msg.line, msg.column ?? 0, msg.line, msg.column ?? 0)
     }
     
-    console.log("[provider] file.open: calling openTextDocument")
-    vscode.workspace.openTextDocument(openUri).then((doc: vscode.TextDocument) => {
-      console.log("[provider] file.open: document opened, calling showTextDocument")
-      return vscode.window.showTextDocument(doc, openOptions)
-    }).then((editor: vscode.TextEditor) => {
-      console.log("[provider] file.open: file opened successfully in editor")
+    console.log("[FileOpenCommand] file.open: calling openTextDocument")
+    try {
+      const doc = await vscode.workspace.openTextDocument(openUri)
+      console.log("[FileOpenCommand] file.open: document opened, calling showTextDocument")
+      const editor = await vscode.window.showTextDocument(doc, openOptions)
+      console.log("[FileOpenCommand] file.open: file opened successfully in editor")
       // Focus the editor
-      vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup")
-    }, (err: Error) => {
-      console.error("[provider] file.open: error", err)
-      vscode.window.showErrorMessage(`无法打开文件: ${err.message}`)
-    })
+      await vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup")
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[FileOpenCommand] file.open: error", message)
+      vscode.window.showErrorMessage(`Cannot open file: ${message}`)
+    }
   }
 }

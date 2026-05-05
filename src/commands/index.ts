@@ -1,4 +1,4 @@
-import type { Command } from "./types"
+import type { Command, CommandRegistry as ICommandRegistry } from "./types"
 import { ReadyCommand } from "./ready"
 import { SessionsListRequestCommand } from "./sessions-list-request"
 import { SessionCreateCommand } from "./session-create"
@@ -15,7 +15,8 @@ import { CommandsListRequestCommand } from "./commands-list-request"
 import { AgentsListRequestCommand } from "./agents-list-request"
 import { FileOpenCommand } from "./file-open"
 import { FileDiffCommand } from "./file-diff"
-export class CommandRegistry {
+
+export class CommandRegistry implements ICommandRegistry {
   private commands = new Map<string, Command>()
 
   constructor() {

@@ -26,7 +26,13 @@ export class SessionDeleteCommand implements Command {
       console.warn("[opencode] Failed to fetch children for cascade delete:", err)
     }
 
-    await client.session.delete({ path: { id: msg.sessionID }, query: { directory } })
-    dispatcher.postMessage({ type: "session.deleted", sessionID: msg.sessionID })
+    try {
+      await client.session.delete({ path: { id: msg.sessionID }, query: { directory } })
+      dispatcher.postMessage({ type: "session.deleted", sessionID: msg.sessionID })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[SessionDeleteCommand] Failed to delete session:", message)
+      dispatcher.postMessage({ type: "server.error", message: `Failed to delete session: ${message}` })
+    }
   }
 }

@@ -33,9 +33,11 @@ export class FileChangesPanelProvider implements vscode.WebviewViewProvider {
 
     view.webview.html = this.getHtml(view.webview)
 
-    view.webview.onDidReceiveMessage((msg: { type: string; path?: string; before?: string; after?: string; line?: number }) => {
-      this.handleMessage(msg)
-    })
+    this.disposables.push(
+      view.webview.onDidReceiveMessage((msg: { type: string; path?: string; before?: string; after?: string; line?: number }) => {
+        this.handleMessage(msg)
+      })
+    )
 
     if (this.currentSessionID && this.currentDiffs.length > 0) {
       this.view.webview.postMessage({
@@ -509,5 +511,8 @@ body {
   public dispose(): void {
     this.disposables.forEach((d) => d.dispose())
     this.disposables = []
+    this.view = undefined
+    this.currentSessionID = undefined
+    this.currentDiffs = []
   }
 }

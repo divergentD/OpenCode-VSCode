@@ -19,7 +19,9 @@ export class PromptCommand implements Command {
       })
       console.log("[opencode] Prompt sent successfully")
     } catch (err) {
-      console.error("[opencode] Failed to send prompt:", err)
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[PromptCommand] Failed to send prompt:", message)
+      dispatcher.postMessage({ type: "server.error", message: `Failed to send prompt: ${message}` })
     }
   }
 }

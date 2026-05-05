@@ -61,6 +61,8 @@ export const handleMessagePartUpdated: EventHandler<{ part: TextPartData }> = (
   return newState
 }
 
+const MAX_PART_DELTAS = 1000
+
 export const handleMessagePartDelta: EventHandler<{
   partID: string
   field: string
@@ -68,8 +70,19 @@ export const handleMessagePartDelta: EventHandler<{
 }> = (state, { partID, field, delta }) => {
   if (field !== "text") return state
   const current = state.partDeltas[partID] ?? ""
+  const newPartDeltas = { ...state.partDeltas, [partID]: current + delta }
+  
+  const entries = Object.entries(newPartDeltas)
+  if (entries.length > MAX_PART_DELTAS) {
+    const trimmed = entries.slice(-MAX_PART_DELTAS)
+    return {
+      ...state,
+      partDeltas: Object.fromEntries(trimmed),
+    }
+  }
+  
   return {
     ...state,
-    partDeltas: { ...state.partDeltas, [partID]: current + delta },
+    partDeltas: newPartDeltas,
   }
 }

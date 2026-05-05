@@ -170,19 +170,25 @@ export class ServerManager {
 
         console.log("[ServerManager] Raw event:", JSON.stringify(event, null, 2))
 
-        const payload = (event as any).payload ?? event
-        console.log("[ServerManager] Using payload:", JSON.stringify(payload, null, 2))
+    const payload = (event as Record<string, unknown>).payload ?? event
+    console.log("[ServerManager] Using payload:", JSON.stringify(payload, null, 2))
 
-        if (payload.type === "message.updated" && payload.properties?.info) {
-          if (payload.properties.parts && payload.properties.parts.length > 0) {
-            payload.properties.info = {
-              ...payload.properties.info,
-              parts: payload.properties.parts,
-            }
+    const typedPayload = payload as Record<string, unknown>
+    if (typedPayload.type === "message.updated") {
+      const properties = typedPayload.properties as Record<string, unknown> | undefined
+      if (properties?.info) {
+        const parts = properties.parts as unknown[] | undefined
+        if (parts && parts.length > 0) {
+          const info = properties.info as Record<string, unknown>
+          properties.info = {
+            ...info,
+            parts,
           }
         }
+      }
+    }
 
-        this.emit({ type: "event", event: payload })
+    this.emit({ type: "event", event: payload })
       }
 
       console.log("[ServerManager] Event stream ended, restarting...")

@@ -10,6 +10,12 @@ export class SessionAbortCommand implements Command {
     const directory = dispatcher.getDirectory()
     if (!client || !directory) return
 
-    await client.session.abort({ path: { id: msg.sessionID }, query: { directory } })
+    try {
+      await client.session.abort({ path: { id: msg.sessionID }, query: { directory } })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error("[SessionAbortCommand] Failed to abort session:", message)
+      dispatcher.postMessage({ type: "server.error", message: `Failed to abort session: ${message}` })
+    }
   }
 }
