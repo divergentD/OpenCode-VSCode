@@ -16,6 +16,19 @@
   background: var(--vscode-sideBar-background);
   border-bottom: 1px solid var(--vscode-sideBar-border);
   flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.todo-list-header:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.todo-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .todo-list-title {
@@ -40,6 +53,18 @@
   overflow-y: auto;
   max-height: 140px;
   padding: 8px 16px;
+  animation: todoListExpand 0.2s ease-out;
+}
+
+@keyframes todoListExpand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 140px;
+  }
 }
 
 .todo-item {
