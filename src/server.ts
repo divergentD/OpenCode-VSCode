@@ -6,6 +6,26 @@ export type ServerHandle = {
   dispose(): void
 }
 
+function terminateProcessTree(pid: number | undefined): void {
+  if (!pid) return
+
+  if (process.platform === "win32") {
+    // On Windows, kill the full process tree to avoid orphaned child processes.
+    const killer = spawn("taskkill", ["/pid", String(pid), "/t", "/f"], {
+      stdio: "ignore",
+      windowsHide: true,
+    })
+    killer.on("error", () => {})
+    return
+  }
+
+  try {
+    process.kill(pid, "SIGTERM")
+  } catch {
+    // Process already exited.
+  }
+}
+
 async function probe(port: number): Promise<boolean> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 2000)
@@ -39,58 +59,95 @@ export async function connect(signal: AbortSignal): Promise<ServerHandle> {
   const proc = spawn("opencode", args, {
     stdio: ["ignore", "pipe", "pipe"],
   })
-
-  if (signal) {
-    signal.addEventListener("abort", () => proc.kill())
+  let disposed = false
+  const disposeProcess = () => {
+    if (disposed) return
+    disposed = true
+    terminateProcessTree(proc.pid)
   }
 
   const url = await new Promise<string>((resolve, reject) => {
+    let settled = false
     const timeout = setTimeout(() => {
-      proc.kill()
+      if (settled) return
+      settled = true
+      cleanup()
+      disposeProcess()
       reject(new Error("Timeout waiting for server to start after 15 seconds"))
     }, 15000)
 
     let output = ""
-    proc.stdout?.on("data", (chunk) => {
+    const onStdout = (chunk: Buffer) => {
       output += chunk.toString()
       const lines = output.split("\n")
       for (const line of lines) {
         if (line.includes("opencode server listening")) {
           const match = line.match(/on\s+(https?:\/\/[^\s]+)/)
           if (match) {
-            clearTimeout(timeout)
+            if (settled) return
+            settled = true
+            cleanup()
             resolve(match[1])
             return
           }
         }
       }
-    })
+    }
+    proc.stdout?.on("data", onStdout)
 
-    proc.stderr?.on("data", (chunk) => {
+    const onStderr = (chunk: Buffer) => {
       output += chunk.toString()
-    })
+    }
+    proc.stderr?.on("data", onStderr)
 
-    proc.on("exit", (code) => {
-      clearTimeout(timeout)
+    const onExit = (code: number | null) => {
+      if (settled) return
+      settled = true
+      cleanup()
       reject(new Error(`Server exited with code ${code}. Output: ${output}`))
-    })
+    }
+    proc.on("exit", onExit)
 
-    proc.on("error", (error) => {
-      clearTimeout(timeout)
+    const onError = (error: Error) => {
+      if (settled) return
+      settled = true
+      cleanup()
       reject(error)
-    })
+    }
+    proc.on("error", onError)
 
-    if (signal) {
-      signal.addEventListener("abort", () => {
-        clearTimeout(timeout)
-        reject(new Error("Aborted"))
-      })
+    const onAbort = () => {
+      if (settled) return
+      settled = true
+      cleanup()
+      disposeProcess()
+      reject(new Error("Aborted"))
+    }
+
+    const cleanup = () => {
+      clearTimeout(timeout)
+      proc.stdout?.off("data", onStdout)
+      proc.stderr?.off("data", onStderr)
+      proc.off("exit", onExit)
+      proc.off("error", onError)
+      signal.removeEventListener("abort", onAbort)
+    }
+
+    if (signal.aborted) {
+      onAbort()
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true })
     }
   })
+
+  if (signal.aborted) {
+    disposeProcess()
+    throw new Error("Aborted")
+  }
 
   return {
     url,
     spawned: true,
-    dispose: () => proc.kill(),
+    dispose: () => disposeProcess(),
   }
 }
